@@ -106,8 +106,8 @@ const phrases = ['Editing video', 'Building brand systems', 'Designing interface
     display: inline-block;
   }
 
-  /* La línea que se escribe sola es el único amarillo de la vista.
-     La flecha va en blanco: el naranja y el amarillo nunca se tocan. */
+  /* La línea que se escribe sola va en blanco: a este tamaño el azul eléctrico no alcanza el
+     contraste (3,15:1) y el amarillo ya no cuadraba. El azul queda en el cursor, que no es texto. */
   .typed {
     display: flex;
     align-items: baseline;
@@ -115,7 +115,7 @@ const phrases = ['Editing video', 'Building brand systems', 'Designing interface
     min-height: 1.5em;
     margin-top: clamp(1rem, 6svh, 4rem);
     font-weight: 600;
-    color: var(--yellow);
+    color: var(--white);
   }
 
   .typed-arrow {
@@ -124,11 +124,11 @@ const phrases = ['Editing video', 'Building brand systems', 'Designing interface
 
   .caret {
     display: inline-block;
-    width: 0.08em;
+    width: 0.14em;
     height: 1.05em;
     margin-left: -0.35em;
     align-self: center;
-    background: var(--yellow);
+    background: var(--electric);
     opacity: 0;
   }
 

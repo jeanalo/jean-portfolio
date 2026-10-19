@@ -41,9 +41,9 @@ Las fuentes van alojadas en el propio sitio con Fontsource (`@fontsource/libre-f
 
 - El azul sigue siendo la voz principal. Se usa en cajas, bloques, en el hover de textos grandes y en los titulares de los casos (Problem, My role..., los títulos de las piezas de video): azul eléctrico, que a ese tamaño (52 px o más, Black) pasa el contraste de texto grande sobre negro (3,15:1; el detector de Impeccable lo marca porque no resuelve el `clamp()`, es un falso positivo). Sobre Klein, el titular va en blanco. El H1 del caso sigue en blanco con su caja azul.
 - Naranja: hasta el 5% de cada vista. Va en puntos finales, separadores, flechas y en el hover y los estados activos de textos pequeños (5,9:1 sobre negro; el azul se queda en 3,15:1 y no alcanza en texto chico). Nunca en párrafos.
-- Amarillo #FFE500: acento nuevo, más escaso que el naranja, máximo un elemento por vista. Viene del destello del banner. Hoy es la línea que se escribe sola del hero (texto y cursor). Por eso el destello de la escarapela pasó a azul eléctrico.
+- Amarillo #FFE500: acento de reserva, hoy sin uso. Era la línea que se escribe sola del hero, pero el 2026-10-19 Jean la pasó a blanco con el cursor en azul eléctrico (el amarillo ya no cuadraba y el eléctrico no alcanza 4,5:1 en texto chico: el azul queda en el cursor, que no es texto). El destello de la escarapela sigue en azul eléctrico.
 - El lanyard de la escarapela es naranja: cuenta dentro del 5% de la vista.
-- El naranja y el amarillo nunca se tocan: la flecha de la línea que se escribe sola va en blanco.
+- El naranja y el amarillo nunca se tocan (regla latente mientras el amarillo no se use). La flecha de la línea que se escribe sola va en blanco, como su texto.
 - Los separadores en línea son siempre ■ naranja, nunca comas.
 - Sobre Klein (el bloque de What I do), los textos pequeños activos y el foco van en blanco: el naranja y el azul eléctrico no alcanzan contraste de texto sobre Klein.
 - Sobre vidrio, el texto va en blanco en todos sus estados: sobre un video claro el vidrio queda gris y el naranja no alcanza contraste. En los controles del video, el hover oscurece el vidrio; en el nav de vidrio, el enlace se subraya.
@@ -101,7 +101,7 @@ El sistema tiene dos capas.
 - Entradas con ease-out. Sin rebotes ni efectos elásticos.
 - Máximo una sección fijada (pin) con ScrollTrigger por página
 - El texto de cuerpo entra una sola vez, sin efectos letra por letra
-- Única excepción: una sola línea corta del hero puede escribirse letra por letra. Con `prefers-reduced-motion` se muestra completa, y los lectores de pantalla leen el texto entero.
+- Única excepción: una sola línea corta del hero puede escribirse letra por letra, en loop (escribe, sostiene, borra, sigue; pedido de Jean del 2026-10-19). Se pausa cuando el hero sale de la vista. Con `prefers-reduced-motion` se muestra completa y quieta, y los lectores de pantalla leen el texto entero.
 - Rotaciones permitidas solo entre -2 y -3 grados, como firma visual
 - Excepción 1: la escarapela se mueve con física de péndulo amortiguado. Se inclina hacia el cursor, se puede arrastrar y al soltarla vuelve a su lugar balanceándose; con el scroll se mece según la velocidad. Siempre termina quieta.
 - El llavero 3D del footer usa la misma física (sin arrastre): cae colgado de su cadena cuando aparece el footer, se inclina hacia el cursor, se mece con el scroll y queda en reposo colgando derecho.
@@ -164,7 +164,7 @@ El sistema tiene dos capas.
 
 ## Hero
 
-- Headline a la izquierda (7 columnas) en dos líneas grandes: HEY. I MAKE / STUFF move. Arriba, la fila INTERACTIVE MEDIA DESIGNER ■ OPEN TO WORK ■ BASED IN COLOMBIA, WORKING WORLDWIDE: en dos líneas si no cabe, sin separadores sueltos al comienzo de una línea. En móvil, en columna y solo INTERACTIVE MEDIA DESIGNER y OPEN TO WORK: lo de Colombia y el mundo ya lo dicen la escarapela y la intro. Debajo, la línea que se escribe sola (en amarillo) y la subline.
+- Headline a la izquierda (7 columnas) en dos líneas grandes: HEY. I MAKE / STUFF move. Arriba, la fila INTERACTIVE MEDIA DESIGNER ■ OPEN TO WORK ■ BASED IN COLOMBIA, WORKING WORLDWIDE: en dos líneas si no cabe, sin separadores sueltos al comienzo de una línea. En móvil, en columna y solo INTERACTIVE MEDIA DESIGNER y OPEN TO WORK: lo de Colombia y el mundo ya lo dicen la escarapela y la intro. Debajo, la línea que se escribe sola (texto y flecha en blanco, cursor en azul eléctrico) y la subline.
 - El hero completo, con la escarapela, cabe en la primera pantalla desde 1280 × 530 px: el headline y la escarapela se limitan también por el alto de la pantalla.
 - El hero ocupa como mínimo la primera pantalla (`min-height: 100svh`), con su contenido centrado. Nada de la sección siguiente (ni el marco ni la cinta) asoma antes del primer scroll, bajo ninguna circunstancia.
 - A la derecha (5 columnas), la escarapela colgando, con el lanyard saliendo por el borde superior de la pantalla. En móvil va debajo del headline y más pequeña.

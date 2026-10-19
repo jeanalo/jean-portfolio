@@ -68,27 +68,20 @@ function startTyping(hero: HTMLElement) {
     el.textContent = current.slice(0, Math.round(proxy.n));
   };
 
-  // Una sola vuelta por las frases y termina escribiendo la primera otra vez: no se mueve para siempre
-  const typing = gsap.timeline();
-  [...phrases, phrases[0]].forEach((phrase, i, all) => {
-    const last = i === all.length - 1;
+  // En loop para siempre (pedido de Jean, 2026-10-19): escribe, sostiene, borra y sigue con la
+  // siguiente, y al terminar la vuelta arranca de nuevo. Solo corre mientras el hero está a la vista.
+  const typing = gsap.timeline({ repeat: -1 });
+  phrases.forEach((phrase) => {
     typing
       .call(() => {
         current = phrase;
         proxy.n = 0;
         render();
       })
-      .to(proxy, { n: phrase.length, duration: phrase.length * 0.055, ease: 'none', onUpdate: render });
-    if (last) return;
-    typing
+      .to(proxy, { n: phrase.length, duration: phrase.length * 0.055, ease: 'none', onUpdate: render })
       .to({}, { duration: 1.8 })
       .to(proxy, { n: 0, duration: phrase.length * 0.025, ease: 'none', onUpdate: render })
       .to({}, { duration: 0.25 });
-  });
-  // Al terminar, el cursor deja de parpadear
-  typing.eventCallback('onComplete', () => {
-    blink?.kill();
-    if (caret) gsap.set(caret, { opacity: 0 });
   });
 
   const blink = caret
