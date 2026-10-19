@@ -160,7 +160,7 @@ El sistema tiene dos capas.
 2. Home con hero de video (placeholder), disciplinas, trabajo, about y contacto
 3. Pasada de motion con GSAP, siguiendo las reglas de Motion de este archivo
 4. Revisión con `/impeccable audit`, `/impeccable quieter` y las skills de Emil
-5. Publicar en Vercel
+5. Publicar en Vercel. El repo está en https://github.com/jeanalo/jean-portfolio (público, rama main, subido el 2026-10-19). Astro estático: Vercel lo detecta solo (build `npm run build`, salida `dist`, Node 22). Los .mov originales y las capturas de .impeccable no están en el repo (ver .gitignore).
 
 ## Hero
 
