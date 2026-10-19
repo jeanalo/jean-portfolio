@@ -218,20 +218,32 @@ const kits = [
   .photo {
     grid-area: photo;
     justify-self: end;
-    width: min(100%, 62svh);
+    width: min(100%, 92svh);
     margin: 0;
   }
 
   /* Escritorio chico: el kit pasa a filas de hoja de rodaje, con el título en las columnas 1 a 4 y la
      lista en dos columnas en la 5 a 12 */
   @media (min-width: 761px) and (max-width: 1100px) {
+    /* En tablet la hoja corta baja a todo el ancho: al lado del póster solo quedan el titular y la
+       bio, que miden casi lo mismo que él, sin hueco */
+    .about {
+      grid-template-areas:
+        'title title title title title title title photo photo photo photo photo'
+        'bio   bio   bio   bio   bio   bio   .     photo photo photo photo photo'
+        'who   who   who   who   who   who   who   who   who   who   who   who'
+        'kits  kits  kits  kits  kits  kits  kits  kits  kits  kits  kits  kits';
+      grid-template-rows: auto 1fr auto auto;
+    }
+
     .who {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-4);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-4) var(--gutter);
+      margin-top: var(--space-8);
     }
 
     .fact-education {
-      grid-column: 1;
+      grid-column: auto;
     }
 
     .kits {

@@ -64,6 +64,14 @@ const drum = all.filter((p) => !p.data.draft).length >= 3;
       })}
     </div>
   </div>
+
+  <!-- Al final de los casos, el camino al resto del trabajo -->
+  <p class="more">
+    <span class="label more-lead">Want more?</span>
+    <a class="label more-link" href="https://www.behance.net/jeanalomia" target="_blank" rel="noopener noreferrer">
+      See the rest on Behance <span aria-hidden="true">→</span>
+    </a>
+  </p>
 </section>
 
 <script>
@@ -180,6 +188,45 @@ const drum = all.filter((p) => !p.data.draft).length >= 3;
   /* En escritorio la portada vive en el panel; en móvil, dentro de cada fila */
   .row-cover {
     display: none;
+  }
+
+  /* La línea de Behance: chica, al pie de la sección */
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .more-lead {
+    color: var(--text-muted);
+  }
+
+  .more-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 44px;
+    color: var(--white);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .more-link span {
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .more-link:hover {
+      color: var(--orange);
+    }
+
+    .more-link:hover span {
+      transform: translateX(4px);
+    }
   }
 
   @media (max-width: 760px) {
