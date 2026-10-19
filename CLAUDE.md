@@ -268,7 +268,8 @@ Al terminar cada tarea:
 
 ## Proyectos (casos de estudio)
 
-1. Global Virtuoso: rebrand y manual de marca (108 páginas) para una empresa con sedes en Manila y Dubái. Caso publicado, con texto real, la comparación 2018 → 2026 en la apertura y las páginas del manual a color. Imágenes en `public/work/global-virtuoso/`.
+1. Global Virtuoso: rebrand y manual de marca (108 páginas) para una empresa con sedes en Manila y Dubái. Caso publicado, con texto real, la comparación 2018 → 2026 en la apertura y las páginas del manual a color. Imágenes en `public/work/global-virtuoso/`. OJO (2026-10-19): Jean NO diseñó el set de logos 2026 desde cero; los logos ya existían y él los amplió y complementó en Figma. El copy del caso ya lo dice así.
+   Los códigos hex en los párrafos de cualquier caso se resaltan con su color (`src/components/HexText.astro`): un cuadrado del color delante del código, con filete claro para los oscuros, y el código en blanco 600.
 2. TripSync, `/work/tripsync/`, 2026: app web de planeación de viajes para el curso de Programación Web de la Universidad Icesi. Publicado. Ver "Caso TripSync".
 3. Mentta (antes Kin), `/work/mentta/`, 2026: sistema de información de comida para las 12 cafeterías de la Universidad Icesi, para los cursos Investigación en Diseño y HCI. Publicado. Ver "Caso Mentta".
 4. Selected edits (VIDEO en el home), 2024 a 2026: tres piezas de video incrustadas con su ficha (Interactive Media Design, Puerta Abierta y Pedro el Escamoso). Publicado, de último a pedido de Jean. Ver "Selección de video".

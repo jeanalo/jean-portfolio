@@ -9,6 +9,7 @@ import PrototypeEmbed from '../../components/PrototypeEmbed.astro';
 import CaseFigures from '../../components/CaseFigures.astro';
 import Spotlight from '../../components/Spotlight.astro';
 import WireCompare from '../../components/WireCompare.astro';
+import HexText from '../../components/HexText.astro';
 import { getProjects, paragraphs, showPending, yearLabel } from '../../lib/projects';
 
 export async function getStaticPaths() {
@@ -223,10 +224,10 @@ const sections = [
                   ) : p.lead ? (
                     <div class="entry">
                       <h3 class="label lead">{p.lead}</h3>
-                      <p>{p.text}</p>
+                      <p><HexText text={p.text} /></p>
                     </div>
                   ) : (
-                    <p>{p.text}</p>
+                    <p><HexText text={p.text} /></p>
                   ),
                 )}
               </div>

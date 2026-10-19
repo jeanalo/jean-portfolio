@@ -1,0 +1,33 @@
+---
+// Texto de caso con los códigos hex resaltados con su propio color: delante de cada código va un
+// cuadrado de ese color (esquinas rectas, con un filete claro para que los oscuros no se pierdan en el
+// negro), y el código sube a blanco 600. Pedido de Jean (2026-10-19) para la sección Color de GV;
+// aplica a cualquier #RRGGBB en los párrafos de un caso.
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+const parts = text.split(/(#[0-9A-Fa-f]{6}\b)/g);
+const isHex = (s: string) => /^#[0-9A-Fa-f]{6}$/.test(s);
+---
+
+{parts.map((part) => (isHex(part)
+  ? <span class="hex"><i style={`background: ${part}`} aria-hidden="true"></i>{part.toUpperCase()}</span>
+  : part))}
+
+<style>
+  .hex {
+    white-space: nowrap;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .hex i {
+    display: inline-block;
+    width: 0.72em;
+    height: 0.72em;
+    margin-right: 0.32em;
+    outline: 1px solid rgb(242 242 240 / 0.3);
+    vertical-align: -0.03em;
+  }
+</style>

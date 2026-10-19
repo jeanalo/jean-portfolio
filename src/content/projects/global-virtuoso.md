@@ -9,13 +9,13 @@ disciplines:
   - Branding
 deliverables:
   - Brand manual, 108 pages
-  - 2026 logo set
+  - 2026 logo set, expanded
   - Letterheads and envelopes, Manila and Dubai
   - Business card system, Manila and Dubai
   - Monthly newsletter template
   - Brand orientation guide
 summary: >-
-  I renewed the Global Virtuoso brand manual, designed the 2026 logo set, and
+  I renewed the Global Virtuoso brand manual, expanded the 2026 logo set, and
   built the templates the team reuses across two offices, in Manila and Dubai.
   I worked as a contractor, through rounds of corrections from the CEO, and
   checked the whole system page by page before release.
@@ -58,7 +58,8 @@ sections:
 
       I defined the structure of the manual, set its visual rules, and prepared
       every page, from the logo and color system to typography, iconography,
-      and the full set of applications. I designed the 2026 logo set in Figma.
+      and the full set of applications. The brand already had logos, so I
+      expanded and complemented the 2026 set in Figma instead of starting over.
       I built the templates the team reuses: the monthly newsletter, the
       business cards, the letterheads and envelopes for both offices, and the
       memo and letter formats.
@@ -108,7 +109,7 @@ sections:
       icons come from the same library, so the set stays consistent as it
       grows.
 
-      **Logo.** I rebuilt the 2026 logo set as one consistent system: a horizontal
+      **Logo.** The marks existed; I expanded them into one consistent system: a horizontal
       primary, a vertical lockup, and the standalone symbol, each in full
       color, monotone, and white reverse, plus square masters sized for
       favicons, profile images, and app icons. Every file sits on a transparent
