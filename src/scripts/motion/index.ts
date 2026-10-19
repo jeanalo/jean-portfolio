@@ -21,6 +21,7 @@ import { initReveals } from './reveals';
 import { initWipes } from './wipes';
 import { initParallax } from './parallax';
 import { initCharm } from './charm';
+import { initFooter } from './footer';
 import { initAbout } from './about';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, Draggable, InertiaPlugin, DrawSVGPlugin);
@@ -58,6 +59,7 @@ document.fonts.ready.then(() => {
         initParallax(),
         initAbout({ finePointer: Boolean(finePointer) }),
         initCharm({ finePointer: Boolean(finePointer) }),
+        initFooter(),
       ];
 
       ScrollTrigger.sort();

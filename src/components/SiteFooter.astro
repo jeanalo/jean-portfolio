@@ -8,7 +8,10 @@ const socials = [
 const year = new Date().getFullYear();
 ---
 
-<footer id="contact" class="site-footer wrap grid" aria-labelledby="contact-title">
+<footer id="contact" class="site-footer wrap grid is-blue" aria-labelledby="contact-title">
+  <!-- El campo Klein que sube con el scroll (motion/footer.ts), como el barrido de What I do.
+       Sin motion, el footer ya es azul: is-blue viene en el HTML y el campo lleno. -->
+  <div class="field" aria-hidden="true" data-footer-field></div>
   <h2 id="contact-title" class="label heading">Contact</h2>
   <!-- SAY arriba y HEY. abajo con sangría: en ese hueco cuelga el llavero 3D de Jean,
        con la cadena saliendo por debajo de SAY. Se balancea en src/scripts/motion/charm.ts.
@@ -17,19 +20,16 @@ const year = new Date().getFullYear();
     <span class="line say-1">Say</span>
     <span class="line say-2"><span class="box" data-hey-box>hey</span><span class="dot">.</span></span>
     <span class="charm" aria-hidden="true" data-charm>
-      <picture>
-        <source srcset="/images/jean-keychain.webp" type="image/webp" />
-        <img
-          class="charm-img"
-          src="/images/jean-keychain.jpg"
-          alt=""
-          width="400"
-          height="826"
-          loading="lazy"
-          decoding="async"
-          data-charm-body
-        />
-      </picture>
+      <img
+        class="charm-img"
+        src="/images/jean-keychain-cut.webp"
+        alt=""
+        width="400"
+        height="826"
+        loading="lazy"
+        decoding="async"
+        data-charm-body
+      />
     </span>
   </a>
   <!-- Al lado de SAY HEY., una ficha de contacto ordenada como los datos de About: cada título sobre
@@ -90,9 +90,22 @@ const year = new Date().getFullYear();
 </script>
 
 <style>
+  /* El cierre es más chico que el hero: el titular un paso bajo --display-l y la ficha a cuerpo.
+     isolation: el lighten del llavero y el z-index del campo se quedan dentro del footer. */
   .site-footer {
+    position: relative;
+    isolation: isolate;
     padding-block: var(--section-pad) var(--space-6);
     align-items: start;
+  }
+
+  /* El campo Klein: detrás de todo, crece desde arriba (footer.ts lo ata al scroll) */
+  .field {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--klein);
+    transform-origin: 50% 0%;
   }
 
   .heading {
@@ -108,7 +121,7 @@ const year = new Date().getFullYear();
     margin-top: var(--space-4);
     /* La cabeza cuelga casi un em por debajo de HEY: este margen le guarda el lugar */
     margin-bottom: 0.9em;
-    font-size: var(--display-l);
+    font-size: clamp(2.75rem, 6.4vw, 6.5rem);
     grid-column: 1 / span 6;
     grid-row: 2;
   }
@@ -134,13 +147,14 @@ const year = new Date().getFullYear();
     pointer-events: none;
   }
 
+  /* El llavero va recortado con alfa real (rembg): así no se tiñe sobre el campo Klein.
+     Antes el render con fondo negro se fundía con lighten, pero sobre azul la cabeza quedaba teñida. */
   .charm-img {
     display: block;
     width: 100%;
     height: auto;
     /* El pivote es el arranque de la cadena, escondido detrás de SAY. En reposo cuelga derecho. */
     transform-origin: 47% 0%;
-    mix-blend-mode: lighten;
   }
 
   /* Hover: la caja se inclina un grado más, dentro del rango de la firma (-2 a -3°).
@@ -155,9 +169,53 @@ const year = new Date().getFullYear();
     }
   }
 
+  /* Sobre Klein: la caja HEY se invierte (offwhite con el texto Klein, el electric no contrasta con el
+     campo), el punto pasa a blanco y los textos apagados suben a blanco. Los hovers van en blanco:
+     sobre Klein el naranja no alcanza. El cambio acompaña al barrido con una transición corta. */
+  .box,
+  .say .dot,
+  .heading,
+  .row dt,
+  .copy,
+  .legal,
+  .mail,
+  .socials a {
+    transition:
+      background-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out);
+  }
+
+  .is-blue .box {
+    background: var(--offwhite);
+    color: var(--klein);
+  }
+
+  .is-blue .say .dot {
+    color: var(--white);
+  }
+
+  .is-blue .heading,
+  .is-blue .row dt,
+  .is-blue .copy,
+  .is-blue .legal {
+    color: var(--white);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .is-blue .mail:hover,
+    .is-blue .socials a:hover,
+    .is-blue .copy:hover {
+      color: var(--white);
+    }
+  }
+
+  .is-blue .copy.is-done {
+    color: var(--white);
+  }
+
   /* La ficha de contacto: tres filas, cada título (etiqueta) sobre su valor, en las columnas 7 a 12 y
-     alineada arriba con SAY. Mide lo mismo que SAY HEY. Todos los valores van en --display-xs:
-     la sección usa tres tamaños, el titular, los valores y las etiquetas. */
+     alineada arriba con SAY. Los valores van al tamaño del cuerpo, como la bio de About:
+     la sección usa tres tamaños, el titular, el cuerpo y las etiquetas. */
   .reach {
     grid-column: 7 / span 6;
     grid-row: 2;
@@ -173,8 +231,8 @@ const year = new Date().getFullYear();
 
   .row dd {
     margin: 0;
-    font-size: var(--display-xs);
-    line-height: 1.2;
+    font-size: var(--body);
+    line-height: var(--lh-body);
     color: var(--white);
   }
 
@@ -245,7 +303,7 @@ const year = new Date().getFullYear();
   @media (max-width: 760px) {
     /* El cierre crece en móvil: con el tamaño de escritorio la cabeza del llavero no se lee */
     .say {
-      font-size: var(--display-close-s);
+      font-size: min(19vw, 5.25rem);
     }
 
     /* Áreas táctiles de mínimo 44px */
