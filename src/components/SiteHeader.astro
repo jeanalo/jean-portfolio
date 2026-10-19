@@ -1,0 +1,127 @@
+---
+// Nav flotante y compacto: mide lo que su contenido, arriba a la izquierda.
+// Transparente arriba del todo, de vidrio cuando hay scroll.
+const isHome = Astro.url.pathname === '/';
+const links = [
+  { href: isHome ? '#work' : '/#work', label: 'Work' },
+  { href: isHome ? '#about' : '/#about', label: 'About' },
+  { href: '#contact', label: 'Contact' },
+];
+---
+
+<header class="site-header" data-nav>
+  <div class="bar">
+    <a class="label brand" href="/">Jean Alomia</a>
+    <nav aria-label="Main">
+      <ul class="nav">
+        {links.map((l) => (
+          <li><a class="label" href={l.href}>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Arriba del todo, transparente. Con scroll: vidrio si debajo hay color o movimiento
+  // (elementos con data-surface), negro plano si debajo hay negro (el vidrio ahí no se ve).
+  const bar = document.querySelector<HTMLElement>('[data-nav] .bar');
+  if (bar) {
+    let queued = false;
+    const overColor = () => {
+      const r = bar.getBoundingClientRect();
+      const y = r.top + r.height / 2;
+      return [r.left + 4, r.left + r.width / 2, r.right - 4].some((x) =>
+        document.elementsFromPoint(x, y).some((el) => !bar.contains(el) && el.closest('[data-surface]')),
+      );
+    };
+    const update = () => {
+      queued = false;
+      const scrolled = window.scrollY > 8;
+      const glass = scrolled && overColor();
+      bar.classList.toggle('glass', glass);
+      bar.classList.toggle('is-flat', scrolled && !glass);
+    };
+    update();
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true },
+    );
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: var(--space-1);
+    z-index: 60;
+    padding-inline: calc(var(--margin) - var(--space-2));
+    pointer-events: none; /* deja pasar el puntero a lo que hay detrás, como el lanyard */
+  }
+
+  .bar {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+    min-height: 56px;
+    padding-inline: var(--space-2);
+    pointer-events: auto;
+  }
+
+  /* Mismo grosor de borde que el vidrio, para que nada salte al cambiar */
+  .bar:not(:global(.glass)) {
+    border: 1px solid transparent;
+  }
+
+  /* Sobre negro: tapa el texto que pasa por debajo sin parecer una tarjeta */
+  .bar:global(.is-flat) {
+    background: var(--black);
+  }
+
+  .brand {
+    font-weight: 700;
+  }
+
+  .nav {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  .nav a,
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .nav a:hover,
+  .brand:hover {
+    color: var(--orange);
+  }
+
+  /* Con el nav de vidrio sobre un video o una foto clara, el naranja no alcanza contraste:
+     el hover queda en blanco y se subraya */
+  .bar:global(.glass) .nav a:hover,
+  .bar:global(.glass) .brand:hover {
+    color: var(--white);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+  }
+
+  @media (max-width: 760px) {
+    .bar {
+      gap: var(--space-3);
+    }
+
+    .nav {
+      gap: var(--space-2);
+    }
+  }
+</style>

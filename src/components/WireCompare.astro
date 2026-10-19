@@ -1,0 +1,285 @@
+---
+// Del wireframe a la pantalla final, arrastrando. Las pantallas van en fila, cada una en un marco de
+// papel de esquinas rectas (como el teléfono de la app en vivo), sobre un campo Klein. Debajo de cada
+// final está su wireframe, calcado en Figma sobre la misma pantalla (página "Wireframes pixel perfect"
+// del archivo de Mentta): los dos miden lo mismo y cada caja cae sobre su elemento.
+// Al arrastrar (sobre las pantallas o con la línea de tiempo de abajo) la final se descubre de izquierda
+// a derecha en las cinco a la vez, como un barrido de edición. La línea es un range nativo: teclado y
+// lector de pantalla. Solo transform. Arranca en el wireframe; en móvil las pantallas se deslizan.
+// Motion de la pista inicial en src/scripts/motion/compare.ts.
+import { imageSize } from '../lib/imageSize';
+
+interface Props {
+  screens: { name: string; wire: string; final: string }[];
+  caption?: string;
+}
+const { screens, caption } = Astro.props;
+const dim = imageSize(screens[0].wire);
+const ratio = dim ? `${dim.width} / ${dim.height}` : '288 / 632';
+---
+
+<figure class="wc" style={`--p: 0; --ratio: ${ratio}`} data-compare>
+  <div class="field">
+    <ol class="row" data-compare-row>
+      {screens.map((s) => {
+        const d = imageSize(s.final);
+        return (
+          <li class="frame">
+            <div class="screen" data-compare-screen>
+              <img class="wire" src={s.wire} alt={`${s.name}, wireframe`} width={d?.width} height={d?.height} loading="lazy" decoding="async" />
+              <div class="reveal" aria-hidden="true">
+                <img class="final" src={s.final} alt="" width={d?.width} height={d?.height} loading="lazy" decoding="async" />
+              </div>
+              <span class="split" aria-hidden="true"></span>
+            </div>
+            <span class="label name">{s.name}</span>
+          </li>
+        );
+      })}
+    </ol>
+
+    <div class="scrub">
+      <span class="label end">Wireframe</span>
+      <input
+        class="range"
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value="0"
+        aria-label="From wireframe to final screen"
+        aria-valuetext="Wireframe"
+        data-compare-range
+      />
+      <span class="label end">Final</span>
+    </div>
+  </div>
+  {caption && <figcaption class="caption">{caption}</figcaption>}
+</figure>
+
+<script>
+  // El range manda: su valor (0 a 100) se vuelve --p (0 a 1) en el bloque, y el CSS mueve la ventana
+  // de cada final. Con el mouse también se arrastra sobre las pantallas: la posición dentro de la
+  // pantalla que se toca es la del barrido. En pantallas táctiles el dedo desliza la fila, y el barrido
+  // va con la línea de abajo.
+  document.querySelectorAll<HTMLElement>('[data-compare]').forEach((root) => {
+    const range = root.querySelector<HTMLInputElement>('[data-compare-range]');
+    if (!range) return;
+    const text = (v: number) => (v <= 0 ? 'Wireframe' : v >= 100 ? 'Final' : `${v}% final`);
+    const set = (v: number) => {
+      const n = Math.max(0, Math.min(100, Math.round(v)));
+      range.value = String(n);
+      range.setAttribute('aria-valuetext', text(n));
+      root.style.setProperty('--p', String(n / 100));
+    };
+    range.addEventListener('input', () => set(Number(range.value)));
+    // La pista de motion (compare.ts) mueve el barrido sin tocar el foco
+    root.addEventListener('compare:set', (e) => set((e as CustomEvent<number>).detail));
+
+    root.querySelectorAll<HTMLElement>('[data-compare-screen]').forEach((screen) => {
+      let dragging = false;
+      const at = (e: PointerEvent) => {
+        const r = screen.getBoundingClientRect();
+        set(((e.clientX - r.left) / r.width) * 100);
+      };
+      screen.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch') return;
+        dragging = true;
+        root.dispatchEvent(new CustomEvent('compare:touched'));
+        screen.setPointerCapture(e.pointerId);
+        at(e);
+      });
+      screen.addEventListener('pointermove', (e) => dragging && at(e));
+      const stop = () => (dragging = false);
+      screen.addEventListener('pointerup', stop);
+      screen.addEventListener('pointercancel', stop);
+    });
+    range.addEventListener('pointerdown', () => root.dispatchEvent(new CustomEvent('compare:touched')));
+    range.addEventListener('keydown', () => root.dispatchEvent(new CustomEvent('compare:touched')));
+  });
+</script>
+
+<style>
+  .wc {
+    grid-column: 1 / -1;
+  }
+
+  /* El campo Klein, como el de los wireframes de antes, con aire alrededor de la fila */
+  .field {
+    padding: var(--space-6) var(--space-4) var(--space-4);
+    background: var(--klein);
+  }
+
+  /* Cinco pantallas a la misma altura, sin pasar del 66% del alto de la pantalla */
+  .row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--gutter);
+    justify-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .frame {
+    width: min(100%, calc(66svh * (var(--ratio)) + 12px));
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* El marco: papel de esquinas rectas alrededor de la pantalla, como el teléfono de la app en vivo */
+  .screen {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    border: 6px solid var(--offwhite);
+    background: var(--offwhite);
+    box-sizing: content-box;
+    cursor: ew-resize;
+    touch-action: pan-x pan-y;
+    user-select: none;
+  }
+
+  .screen img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* La ventana de la final cubre de 0 a --p: la ventana se corre y la imagen se corre al revés, así la
+     imagen queda quieta. Solo transform. */
+  .reveal {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform: translateX(calc((var(--p) - 1) * 100%));
+  }
+
+  .reveal .final {
+    transform: translateX(calc((1 - var(--p)) * 100%));
+  }
+
+  /* La línea del barrido: blanca, sobre el borde entre las dos */
+  .split {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    transform: translateX(calc(var(--p) * 100%));
+    /* No se ve en los extremos: ahí no hay borde entre las dos */
+    opacity: clamp(0, calc(min(var(--p), 1 - var(--p)) * 60), 1);
+  }
+
+  .split::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -1px;
+    width: 2px;
+    background: var(--orange);
+  }
+
+  .name {
+    color: var(--white);
+  }
+
+  /* La línea de tiempo: como la de los videos, con el cuadrado como cabezal. Sobre Klein, en blanco. */
+  .scrub {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .end {
+    color: var(--white);
+  }
+
+  .range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    cursor: ew-resize;
+  }
+
+  .range::-webkit-slider-runnable-track {
+    height: 2px;
+    background: rgb(255 255 255 / 0.45);
+  }
+
+  .range::-moz-range-track {
+    height: 2px;
+    background: rgb(255 255 255 / 0.45);
+  }
+
+  .range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -7px;
+    border: 0;
+    border-radius: 0;
+    background: var(--white);
+  }
+
+  .range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border: 0;
+    border-radius: 0;
+    background: var(--white);
+  }
+
+  .range:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 2px;
+  }
+
+  .caption {
+    margin-top: var(--space-2);
+    font-size: var(--label);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  /* En móvil la fila se desliza con el dedo, una pantalla y algo a la vez */
+  @media (max-width: 760px) {
+    .field {
+      padding: var(--space-4) 0 var(--space-3);
+    }
+
+    .row {
+      display: flex;
+      gap: var(--space-2);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-inline: var(--space-2);
+      scrollbar-width: none;
+    }
+
+    .row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .frame {
+      flex: none;
+      width: min(64vw, calc(62svh * (var(--ratio)) + 12px));
+      scroll-snap-align: center;
+    }
+
+    .scrub {
+      padding-inline: var(--space-3);
+    }
+  }
+</style>

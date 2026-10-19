@@ -1,0 +1,274 @@
+---
+// Links sacados del CV de Jean. Verificar que las URLs sean las correctas.
+const email = 'jeanalomia2828@gmail.com';
+const socials = [
+  { href: 'https://www.linkedin.com/in/jeanalomia', label: 'LinkedIn' },
+  { href: 'https://www.behance.net/jeanalomia', label: 'Behance' },
+];
+const year = new Date().getFullYear();
+---
+
+<footer id="contact" class="site-footer wrap grid" aria-labelledby="contact-title">
+  <h2 id="contact-title" class="label heading">Contact</h2>
+  <!-- SAY arriba y HEY. abajo con sangría: en ese hueco cuelga el llavero 3D de Jean,
+       con la cadena saliendo por debajo de SAY. Se balancea en src/scripts/motion/charm.ts.
+       El fondo del render es negro puro: lighten lo funde con el negro del sitio. -->
+  <a class="display say" href={`mailto:${email}`}>
+    <span class="line say-1">Say</span>
+    <span class="line say-2"><span class="box" data-hey-box>hey</span><span class="dot">.</span></span>
+    <span class="charm" aria-hidden="true" data-charm>
+      <picture>
+        <source srcset="/images/jean-keychain.webp" type="image/webp" />
+        <img
+          class="charm-img"
+          src="/images/jean-keychain.jpg"
+          alt=""
+          width="400"
+          height="826"
+          loading="lazy"
+          decoding="async"
+          data-charm-body
+        />
+      </picture>
+    </span>
+  </a>
+  <!-- Al lado de SAY HEY., una ficha de contacto ordenada como los datos de About: cada título sobre
+       su valor, alineada arriba con SAY. Escribir es la acción principal del sitio: va a la vista. -->
+  <dl class="reach">
+    <div class="row">
+      <dt class="label">Email</dt>
+      <dd class="mail-row">
+        <a class="mail" href={`mailto:${email}`}>{email}</a>
+        <button type="button" class="label copy" data-copy={email}>
+          <span data-copy-label>Copy email</span>
+        </button>
+        <span class="sr-only" aria-live="polite" data-copy-status></span>
+      </dd>
+    </div>
+    <div class="row">
+      <dt class="label">Elsewhere</dt>
+      <dd>
+        <ul class="socials">
+          {socials.map((s) => (
+            <li><a href={s.href} target="_blank" rel="noopener noreferrer">{s.label} <span aria-hidden="true">→</span></a></li>
+          ))}
+        </ul>
+      </dd>
+    </div>
+    <div class="row">
+      <dt class="label">Availability</dt>
+      <dd>Open to freelance projects now.</dd>
+    </div>
+  </dl>
+  <p class="label legal">© {year} Jean Alomia</p>
+</footer>
+
+<script>
+  // Copiar el correo: para quien no usa un cliente de correo. El enlace mailto sigue igual.
+  const btn = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const label = document.querySelector<HTMLElement>('[data-copy-label]');
+  const status = document.querySelector<HTMLElement>('[data-copy-status]');
+  if (btn && label && status) {
+    let timer = 0;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy || '');
+        label.textContent = 'Copied ■';
+        status.textContent = 'Email copied';
+        btn.classList.add('is-done');
+        clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          label.textContent = 'Copy email';
+          status.textContent = '';
+          btn.classList.remove('is-done');
+        }, 1800);
+      } catch {
+        label.textContent = 'Select and copy';
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-footer {
+    padding-block: var(--section-pad) var(--space-6);
+    align-items: start;
+  }
+
+  .heading {
+    grid-column: 1 / -1;
+  }
+
+  /* Todo se mide en em del titular: la composición escala igual en escritorio y en móvil.
+     Sin z-index en .say: así el lighten del llavero llega hasta el fondo de la página. */
+  .say {
+    position: relative;
+    display: block;
+    width: fit-content;
+    margin-top: var(--space-4);
+    /* La cabeza cuelga casi un em por debajo de HEY: este margen le guarda el lugar */
+    margin-bottom: 0.9em;
+    font-size: var(--display-l);
+    grid-column: 1 / span 6;
+    grid-row: 2;
+  }
+
+  /* Las letras van por delante del llavero: SAY le tapa el arranque de la cadena */
+  .say .line {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* La sangría de HEY. deja el hueco donde cuelga la cabeza */
+  .say-2 {
+    padding-left: 0.88em;
+  }
+
+  /* La cadena arranca escondida en el trazo de abajo de la S (la línea base está a 0,79em)
+     y la cabeza mide más de una vez y media la caja HEY */
+  .charm {
+    position: absolute;
+    left: -0.14em;
+    top: 0.72em;
+    width: 0.96em;
+    pointer-events: none;
+  }
+
+  .charm-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* El pivote es el arranque de la cadena, escondido detrás de SAY. En reposo cuelga derecho. */
+    transform-origin: 47% 0%;
+    mix-blend-mode: lighten;
+  }
+
+  /* Hover: la caja se inclina un grado más, dentro del rango de la firma (-2 a -3°).
+     Va en la propiedad rotate, separada del transform que anima GSAP en la entrada. */
+  .box {
+    transition: rotate var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .say:hover .box {
+      rotate: -1deg;
+    }
+  }
+
+  /* La ficha de contacto: tres filas, cada título (etiqueta) sobre su valor, en las columnas 7 a 12 y
+     alineada arriba con SAY. Mide lo mismo que SAY HEY. Todos los valores van en --display-xs:
+     la sección usa tres tamaños, el titular, los valores y las etiquetas. */
+  .reach {
+    grid-column: 7 / span 6;
+    grid-row: 2;
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+  }
+
+  .row dt {
+    margin-bottom: 0.6em;
+    color: var(--text-muted);
+  }
+
+  .row dd {
+    margin: 0;
+    font-size: var(--display-xs);
+    line-height: 1.2;
+    color: var(--white);
+  }
+
+  .mail-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .mail {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    overflow-wrap: anywhere;
+  }
+
+  .mail:hover {
+    color: var(--orange);
+  }
+
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-6);
+  }
+
+  .socials span {
+    display: inline-block;
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+
+  .mail,
+  .socials a {
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .socials a:hover {
+      color: var(--orange);
+    }
+
+    .socials a:hover span {
+      transform: translateX(4px);
+    }
+  }
+
+  .copy {
+    min-height: 44px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .copy:hover,
+  .copy.is-done {
+    color: var(--orange);
+  }
+
+  /* El pie, debajo de todo: a la izquierda, bajo la cabeza del llavero */
+  .legal {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin-top: var(--space-6);
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 760px) {
+    /* El cierre crece en móvil: con el tamaño de escritorio la cabeza del llavero no se lee */
+    .say {
+      font-size: var(--display-close-s);
+    }
+
+    /* Áreas táctiles de mínimo 44px */
+    .mail,
+    .socials a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    /* En una columna: SAY HEY., debajo la ficha y al final el pie */
+    .say,
+    .reach {
+      grid-column: 1 / -1;
+    }
+
+    .reach {
+      grid-row: 3;
+      margin-top: var(--space-6);
+    }
+
+    .legal {
+      grid-row: 4;
+    }
+  }
+</style>

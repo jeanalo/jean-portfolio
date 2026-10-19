@@ -1,0 +1,378 @@
+---
+// Sección de video, justo después del hero: es lo primero que asoma en la primera bajada.
+// Escritorio: marco 16:9 en 8 columnas, rotado -2°, y al lado, en 4, "Hi, I'm Jean." con la línea de intro.
+// Móvil: el mismo marco 16:9 a todo el ancho; en 4:5 se cortaban los emojis y los logos de los lados.
+// El video no arranca solo: hay que darle Play, y suena con sonido desde el primer clic (no hay botón de sonido).
+// Con el scroll, primero cae el telón y después entra la línea; nunca coinciden (motion/video.ts):
+// - El telón: un bloque Klein con "HI" recortado en letras gigantes cubre el video, que ya corre a través de
+//   las letras. Al bajar, la cámara entra por la I: el telón crece y el video revienta por la letra hasta
+//   llenar el marco (un text matte zoom de motion). Sin JS de motion o con movimiento reducido, no hay telón.
+// - La línea: delgada, de azul eléctrico. Sale del borde izquierdo, hace un arco por encima del marco y se
+//   mete detrás; reaparece por debajo del marco y vuelve en curva al borde izquierdo. Nunca pasa por delante
+//   del video, y sus dos puntas quedan fuera de la pantalla.
+import { introVideo } from '../../lib/video';
+
+const intro =
+  'I help companies around the world look sharp and make sense: brand identities, websites and interfaces people actually enjoy using, and videos and motion that tell their story. From logo to screen, one language.';
+---
+
+<section id="intro" class="video-sec wrap grid" aria-labelledby="intro-title" data-video-sec>
+  <div class="frame-area">
+    <div class="frame-wrap">
+    <!-- Coordenadas en unidades del marco 16:9 (1600 × 900), el mismo en escritorio y en móvil.
+         Grosor = 3,3% del alto del marco. El SVG se mide en % del marco, así que escala con él sin deformarse. -->
+    <svg class="ribbon" viewBox="-520 -260 1820 1360" aria-hidden="true" focusable="false">
+      <path data-ribbon data-ribbon-head d="M-520 -20 C-260 -40 -20 -130 300 -130 C560 -130 780 -90 900 0 C1050 160 1200 600 1180 870" />
+      <path data-ribbon data-ribbon-tail d="M1180 870 C1170 980 1000 1030 760 1035 C460 1040 120 1010 -520 1040" />
+    </svg>
+
+    <figure class="frame" data-video-frame data-surface>
+      {introVideo.src ? (
+        <video
+          class="media"
+          playsinline
+          preload="metadata"
+          poster={introVideo.poster}
+          aria-label="Jean's intro video"
+          data-video
+        >
+          <source src={introVideo.src} type="video/mp4" />
+          {/* El video ya trae los subtítulos quemados en la imagen: la pista va sin default para no duplicarlos */}
+          {introVideo.captions && <track kind="captions" src={introVideo.captions} srclang="en" label="English" />}
+        </video>
+      ) : (
+        <div class="media poster">
+          <img src="/images/jean-portrait.jpg" alt="" width="1254" height="1254" loading="lazy" decoding="async" />
+        </div>
+      )}
+
+      <!-- Telón: Klein con "HI" recortado. Gira con el marco y crece desde el centro de la I. -->
+      <div class="curtain" aria-hidden="true" data-curtain>
+        <svg class="curtain-art" viewBox="0 0 1600 900" preserveAspectRatio="none" focusable="false" data-curtain-art>
+          <defs>
+            <mask id="curtain-hi-wide" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">
+              <rect width="1600" height="900" fill="#fff" />
+              <text x="800" y="768" text-anchor="middle" class="curtain-word" font-size="850" data-curtain-word>HI</text>
+            </mask>
+          </defs>
+          <rect width="1600" height="900" class="curtain-field" mask="url(#curtain-hi-wide)" />
+        </svg>
+      </div>
+
+      {introVideo.src && (
+        <div class="controls">
+          <button type="button" class="ctrl glass" data-play>
+            <span data-play-label>Play intro</span>
+            <span class="dur" data-play-dur hidden><span class="sep" aria-hidden="true"></span><span data-play-time></span></span>
+          </button>
+        </div>
+      )}
+    </figure>
+
+    </div>
+  </div>
+
+  <div class="aside">
+    <h2 id="intro-title" class="display title" data-reveal-title>Hi, I'm Jean<span class="dot">.</span></h2>
+    <div class="lead" data-reveal-text>
+      <p>{intro}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Reproducción. No arranca solo: Play lo arranca con sonido (el clic es el gesto que permite el audio)
+  // y el mismo botón lo pausa. Tocar el video también. Si sale de la vista o la pestaña se oculta, se pausa;
+  // no vuelve a sonar solo. Al terminar, vuelve al póster.
+  const video = document.querySelector<HTMLVideoElement>('[data-video]');
+  const play = document.querySelector<HTMLButtonElement>('[data-play]');
+  const playLabel = document.querySelector<HTMLElement>('[data-play-label]');
+  const dur = document.querySelector<HTMLElement>('[data-play-dur]');
+  const time = document.querySelector<HTMLElement>('[data-play-time]');
+
+  if (video && play && playLabel) {
+    const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, '0')}`;
+    let total = '';
+    const sync = () => {
+      const playing = !video.paused;
+      playLabel.textContent = playing ? 'Pause' : 'Play intro';
+      if (dur) dur.hidden = playing || !total;
+      play.setAttribute('aria-label', playing ? 'Pause intro video' : `Play intro video${total ? `, ${total}` : ''}`);
+    };
+    // La duración puede estar lista antes de que corra este script
+    const showTotal = () => {
+      if (!Number.isFinite(video.duration)) return;
+      total = fmt(video.duration);
+      if (time) time.textContent = total;
+      sync();
+    };
+    if (video.readyState >= 1) showTotal();
+    video.addEventListener('loadedmetadata', showTotal);
+    video.addEventListener('play', sync);
+    video.addEventListener('pause', sync);
+    video.addEventListener('ended', () => {
+      video.load(); // vuelve al póster
+      sync();
+    });
+
+    // Al darle Play, el telón se va para siempre: ya estás viendo el video
+    const sec = video.closest<HTMLElement>('[data-video-sec]');
+    const toggle = () => {
+      if (video.paused) {
+        sec?.setAttribute('data-played', '');
+        video.muted = false;
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    };
+    play.addEventListener('click', toggle);
+    video.addEventListener('click', toggle);
+
+    // Fuera de la vista o con la pestaña oculta, se pausa
+    new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) video.pause();
+    }, { threshold: 0.25 }).observe(video);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) video.pause();
+    });
+    sync();
+  }
+</script>
+
+<style>
+  /* La cinta sale y vuelve por el borde izquierdo: la sección la recorta solo a los lados.
+     Arriba, el aire justo para el arco (16% del alto del marco, cerca del 5,8vw). */
+  .video-sec {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip;
+    align-items: start;
+    row-gap: var(--space-4);
+    padding-block: max(var(--section-pad), 5.8vw) var(--section-pad);
+  }
+
+  /* El marco en 8 columnas; el aire de abajo es para la vuelta de la línea */
+  .frame-area {
+    grid-column: 1 / span 8;
+    padding-bottom: 6vw;
+  }
+
+  .frame-wrap {
+    position: relative;
+  }
+
+  /* Al lado, en 4 columnas: el titular arranca a la altura del marco */
+  .aside {
+    grid-column: 9 / span 4;
+  }
+
+  .title {
+    font-size: var(--display-l);
+  }
+
+  .lead {
+    margin-top: var(--space-4);
+  }
+
+  .frame {
+    position: relative;
+    isolation: isolate; /* el duotono se mezcla solo con su fondo Klein, no con la cinta */
+    aspect-ratio: 16 / 9;
+    background: var(--black);
+    transform: rotate(var(--tilt));
+  }
+
+  /* La línea, siempre por detrás del marco. Posición y tamaño en % del marco (los mismos números del
+     viewBox): conserva su proporción y su grosor escala con el marco. */
+  .ribbon {
+    position: absolute;
+    z-index: -1;
+    left: -32.5%;
+    top: -28.889%;
+    width: 113.75%;
+    height: 151.111%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  /* Azul eléctrico plano, delgada y del mismo grosor de punta a punta */
+  .ribbon path {
+    fill: none;
+    stroke: var(--electric);
+    stroke-width: 30; /* 3,3% de 900 */
+    stroke-linecap: butt;
+  }
+
+  /* El telón: oculto hasta que motion/video.ts lo activa (sin JS o con movimiento reducido, el video se ve) */
+  .curtain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: none;
+    overflow: hidden;
+    color: var(--klein);
+    pointer-events: none;
+  }
+
+  :global(.has-curtain) .curtain {
+    display: block;
+  }
+
+  /* Después del primer Play, el telón no vuelve */
+  .video-sec[data-played] .curtain {
+    display: none;
+  }
+
+  .curtain-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+
+  .curtain-field {
+    fill: currentColor;
+  }
+
+  /* El recorte: Libre Franklin Black, como el titular */
+  .curtain-word {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    fill: #000;
+  }
+
+
+  .media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .media::cue {
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: var(--white);
+    background: rgb(10 10 10 / 0.72);
+  }
+
+  /* Sin video (solo en desarrollo): el retrato en duotono Klein */
+  .poster {
+    position: relative;
+    background: var(--klein);
+  }
+
+  .poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 28%;
+    filter: grayscale(100%) contrast(1.25);
+    mix-blend-mode: screen;
+  }
+
+
+  /* Controles de vidrio arriba a la derecha: la franja de abajo queda para los subtítulos.
+     Van encima del telón: vidrio sobre Klein. */
+  .controls {
+    position: absolute;
+    z-index: 2;
+    top: var(--space-3);
+    right: var(--space-3);
+    display: flex;
+    gap: var(--space-1);
+  }
+
+  .ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 44px;
+    padding-inline: var(--space-2);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .ctrl:active {
+    transform: scale(0.97);
+  }
+
+  /* Hover: el vidrio se oscurece y el texto sigue blanco. Sobre un video claro el vidrio queda gris
+     y el naranja no alcanza contraste (como sobre Klein). Solo cambia la opacidad de esta capa. */
+  .ctrl::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--black);
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease-out);
+  }
+
+  .ctrl {
+    cursor: pointer;
+  }
+
+  /* Duración junto a Play intro, separada por el cuadrado naranja */
+  .dur {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .dur[hidden] {
+    display: none;
+  }
+
+  .dur .sep {
+    margin-inline: 0 0.7em;
+  }
+
+  /* Tocar el video también lo arranca o lo pausa */
+  .media {
+    cursor: pointer;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ctrl:hover::after {
+      opacity: 0.45;
+    }
+  }
+
+  /* Entre tableta y escritorio chico, 4 columnas no alcanzan para la intro sin pasar el alto del marco:
+     el titular y la intro bajan debajo del marco, en las mismas 8 columnas */
+  @media (min-width: 761px) and (max-width: 1000px) {
+    .aside {
+      grid-column: 1 / span 8;
+    }
+  }
+
+  @media (max-width: 760px) {
+    /* Arriba y abajo, el aire justo para el arco y la vuelta de la línea (17% del alto del marco) */
+    .video-sec {
+      padding-top: max(var(--section-pad), 10vw);
+    }
+
+    .frame-area {
+      grid-column: 1 / -1;
+      padding-bottom: 10vw;
+    }
+
+    .aside {
+      grid-column: 1 / -1;
+    }
+
+    .controls {
+      top: var(--space-2);
+      right: var(--space-2);
+    }
+  }
+</style>

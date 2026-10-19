@@ -1,0 +1,102 @@
+---
+// La foto de About como póster (elegido por Jean el 2026-10-19 entre tres opciones).
+// La foto en blanco y negro duro; JEAN gigante en azul eléctrico queda DETRÁS de la cabeza (la capa de
+// encima es Jean recortado con rembg, public/images/jean-about-cut.webp) y ALOMIA en contorno pasa por
+// DELANTE. Etiquetas arriba y abajo, el cuadrado naranja en la esquina. Todo se mide en cqi del marco.
+// Motion (motion/about.ts): JEAN entra desde la izquierda y ALOMIA desde la derecha, atadas al scroll.
+---
+
+<figure class="poster" role="img" aria-label="Jean Alomia" data-surface data-about-poster>
+  <img class="layer bg" src="/images/jean-about.webp" alt="" width="1200" height="1607" loading="lazy" decoding="async" />
+  <span class="word jean" aria-hidden="true" data-poster-jean>Jean</span>
+  <img class="layer cut" src="/images/jean-about-cut.webp" alt="" width="1200" height="1607" loading="lazy" decoding="async" />
+  <span class="word alomia" aria-hidden="true" data-poster-alomia>Alomia</span>
+  <span class="label tag" aria-hidden="true">Interactive media designer</span>
+  <span class="sq" aria-hidden="true"></span>
+  <span class="label foot" aria-hidden="true">Cali, CO <span class="sep"></span>Worldwide</span>
+</figure>
+
+<style>
+  .poster {
+    position: relative;
+    container-type: inline-size;
+    aspect-ratio: 1200 / 1607;
+    overflow: clip;
+    margin: 0;
+    background: var(--black);
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(1.25);
+  }
+
+  .bg {
+    z-index: 0;
+  }
+
+  .cut {
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .word {
+    position: absolute;
+    font-family: var(--font-display);
+    font-weight: 900;
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* Detrás de la cabeza: la cabeza ocupa del 10% al 39% del alto, y JEAN cruza por ahí */
+  .jean {
+    z-index: 1;
+    left: -2cqi;
+    top: 13cqi;
+    font-size: 37cqi;
+    color: var(--electric);
+  }
+
+  /* Por delante de todo, en contorno */
+  .alomia {
+    z-index: 3;
+    left: -1cqi;
+    top: 62cqi;
+    font-size: 24cqi;
+    color: transparent;
+    -webkit-text-stroke: max(2px, 0.5cqi) var(--offwhite);
+  }
+
+  .tag,
+  .foot,
+  .sq {
+    position: absolute;
+    z-index: 4;
+  }
+
+  .tag {
+    left: 4cqi;
+    top: 4cqi;
+    color: var(--white);
+  }
+
+  .sq {
+    right: 4cqi;
+    top: 4cqi;
+    width: 10px;
+    height: 10px;
+    background: var(--orange);
+  }
+
+  .foot {
+    left: 4cqi;
+    bottom: 4cqi;
+    color: var(--white);
+  }
+</style>

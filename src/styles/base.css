@@ -1,0 +1,310 @@
+/* Base global: reset, tipografía, grilla y grano. Reglas duras en CLAUDE.md. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Al saltar desde el nav, el titular de la sección no queda debajo del nav flotante */
+main > section[id],
+body > footer[id] {
+  scroll-margin-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+dl,
+dd,
+figure {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+}
+
+::selection {
+  background: var(--electric);
+  color: var(--white);
+}
+
+:focus-visible {
+  outline: 2px solid var(--electric);
+  outline-offset: 4px;
+}
+
+/* Enlace para saltar al contenido: aparece solo con el teclado */
+.skip {
+  position: absolute;
+  top: 0;
+  left: var(--margin);
+  z-index: 101;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: var(--space-2);
+  background: var(--electric);
+  color: var(--white);
+  transform: translateY(-110%);
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+
+.skip:focus-visible {
+  transform: translateY(0);
+  outline-color: var(--white);
+}
+
+main:focus {
+  outline: none;
+}
+
+/* Grano estático sobre todo el sitio */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Contenedor y grilla de 12 columnas */
+.wrap {
+  padding-inline: var(--margin);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+/* Tipografía */
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--display-xl);
+  line-height: var(--lh-display);
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.display .line {
+  display: block;
+}
+
+.label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--label);
+  line-height: 1.2;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.sep {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline: 14px;
+  vertical-align: 0.18em;
+  background: var(--orange);
+}
+
+/* Firma: palabra en caja azul rotada + palabra en itálica fina */
+.box {
+  display: inline-block;
+  padding: 0.04em 0.14em 0.02em;
+  background: var(--electric);
+  color: var(--white);
+  transform: rotate(var(--tilt));
+  transform-origin: left center;
+}
+
+.soft {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+.dot {
+  color: var(--orange);
+}
+
+.prose p {
+  max-width: var(--measure);
+  color: var(--text);
+}
+
+.prose p + p {
+  margin-top: 1.1em;
+}
+
+/* Solo para lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/*
+  Capa de vidrio. Única excepción a "sin sombras ni degradados", y solo aquí dentro.
+  Va en lo que flota o se toca, sobre color o movimiento. Máximo 3 a la vista.
+*/
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 -1px 0 rgb(255 255 255 / 0.08),
+    inset 0 0 24px rgb(255 255 255 / 0.06);
+  color: var(--white);
+}
+
+/* El vidrio va sobre imagen o color: su anillo de foco es blanco, el azul no siempre alcanza 3:1 */
+.glass:focus-visible {
+  outline-color: var(--white);
+}
+
+/* Brillo especular interno */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--glass-shine), rgb(255 255 255 / 0) 45%);
+}
+
+/* Refracción con desplazamiento SVG: solo Chrome y Edge (clase puesta en Base.astro) */
+.refract .glass {
+  backdrop-filter: url(#glass-refract) blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--glass-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .refract .glass {
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Palabra fantasma: capa de fondo decorativa */
+.ghost {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: var(--display-ghost);
+  line-height: 0.8;
+  letter-spacing: var(--track-display);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ghost);
+}
+
+/* Fotografía del sistema */
+.bw {
+  filter: grayscale(100%) contrast(1.25);
+}
+
+/* Barrido de los titulares de los casos (motion/wipes.ts): cada línea mide lo que su texto y un bloque
+   del color del texto la cruza. Lo crea el JS y se borra al terminar. */
+.wipe-line {
+  position: relative;
+  width: fit-content;
+}
+
+.wipe-block {
+  position: absolute;
+  inset: -0.04em -0.06em;
+  background: currentColor;
+  pointer-events: none;
+}
+
+/* La entrada del hero espera al JS de motion (ver Base.astro) */
+.motion-ok [data-hero-hide] {
+  visibility: hidden;
+}
+
+/* Sin animación para quien lo pide */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-property: color, background-color, border-color, opacity !important;
+    scroll-behavior: auto !important;
+  }
+}

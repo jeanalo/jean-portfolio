@@ -1,0 +1,140 @@
+---
+// Cifras de investigación y pruebas de un caso: el número en Libre Franklin Black sobre su etiqueta,
+// como la hoja de datos de About. Cuatro por fila en escritorio, dos en móvil. Solo números que el
+// caso puede probar. La unidad que sigue al número ("39.2 s") va en la itálica fina.
+// Cada dígito es un rodillo de contador (0 a 9, dos vueltas) que el CSS deja en su cifra: sin JS o con
+// movimiento reducido se lee el número quieto. Motion en src/scripts/motion/figures.ts: los rodillos
+// giran hasta su cifra, como el contador de una línea de tiempo. El lector de pantalla lee el valor.
+interface Props {
+  title: string;
+  items: { value: string; label: string }[];
+}
+const { title, items } = Astro.props;
+const split = (v: string) => {
+  const m = v.match(/^(.*?)\s+([^\d\s]+)$/);
+  return m ? { num: m[1], unit: m[2] } : { num: v, unit: '' };
+};
+const ROWS = [...'01234567890123456789'];
+---
+
+<section class="figures wrap" aria-labelledby="figures-title" data-figures>
+  <h2 id="figures-title" class="label heading">{title}</h2>
+  <dl class="grid list">
+    {items.map((it) => {
+      const { num, unit } = split(it.value);
+      return (
+        <div class="item" data-figure>
+          <dt class="value">
+            <span class="sr-only">{it.value}</span>
+            <span class="mask" aria-hidden="true">
+              <span class="num" data-figure-num>
+                {[...num].map((ch) =>
+                  /\d/.test(ch) ? (
+                    <span class="digit">
+                      {ch}
+                      <span class="reel" style={`--d: ${ch}`} data-reel>
+                        {ROWS.map((r) => <span class="row">{r}</span>)}
+                      </span>
+                    </span>
+                  ) : (
+                    ch
+                  ),
+                )}
+                {unit && <span class="soft unit"> {unit}</span>}
+              </span>
+            </span>
+          </dt>
+          <dd class="what" data-figure-label>{it.label}</dd>
+        </div>
+      );
+    })}
+  </dl>
+</section>
+
+<style>
+  .figures {
+    padding-top: var(--section-pad);
+  }
+
+  .heading {
+    color: var(--text-muted);
+  }
+
+  .list {
+    margin-top: var(--space-4);
+    row-gap: var(--space-6);
+  }
+
+  .item {
+    grid-column: span 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .value {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-m);
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    font-variant-numeric: tabular-nums;
+    color: var(--white);
+    white-space: nowrap;
+  }
+
+  /* La máscara recorta los rodillos arriba y abajo de la línea */
+  .mask {
+    display: block;
+    overflow: clip;
+    padding-bottom: 0.04em;
+    margin-bottom: -0.04em;
+  }
+
+  .num {
+    display: inline-block;
+  }
+
+  /* El dígito en el flujo da el ancho y la línea de base, pero no se ve: se ve su rodillo */
+  .digit {
+    position: relative;
+    display: inline-block;
+    color: transparent;
+  }
+
+  /* Veinte filas (dos vueltas de 0 a 9) de 1.2em, con aire para que la vecina no asome por la máscara.
+     El rodillo sube para quedar centrado en la línea de 0.86 y se corre hasta la cifra de la segunda
+     vuelta: cada fila es el 5% de su alto. */
+  .reel {
+    position: absolute;
+    top: calc((var(--lh-display) * 1em - 1.2em) / 2);
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    color: var(--white);
+    transform: translateY(calc((10 + var(--d)) * -5%));
+  }
+
+  .row {
+    display: block;
+    line-height: 1.2em;
+  }
+
+  .unit {
+    text-transform: none;
+  }
+
+  .what {
+    margin: 0;
+    max-width: 26ch;
+    color: var(--text);
+  }
+
+  @media (max-width: 1100px) {
+    .item {
+      grid-column: span 6;
+    }
+  }
+</style>

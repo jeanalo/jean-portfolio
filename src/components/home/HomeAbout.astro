@@ -1,0 +1,310 @@
+---
+// About, en tres grupos que se leen en orden:
+// 1. Quién soy (7/5, alineado arriba): "ABOUT me.", la bio y debajo la hoja corta (Availability,
+//    Languages, Education) en las 7 columnas de la izquierda; el póster de Jean (AboutPoster) en las 5
+//    de la derecha. La hoja corta llena el espacio que quedaba bajo la bio: las dos columnas terminan
+//    casi a la misma altura sin achicar la foto.
+// 2. El kit, a todo el ancho: Tools, Code y AI tools, cada una en su columna con la lista en vertical
+//    (en línea con ■ se veía mal, pedido de Jean del 2026-10-19).
+// Móvil: titular, póster, bio, hoja corta y el kit en una columna.
+import AboutPoster from './AboutPoster.astro';
+
+const bio = [
+  'I love audiovisual media and communication: editing, motion, and the moment a message finally clicks. I bring that into brands, videos, interfaces and websites, always with user experience at the center. If it looks great but is hard to use, it isn’t finished.',
+  'I use AI every day, and teach teams to use it well: it helps me move faster and explore further, but the final call is always mine as a designer.',
+];
+
+// Lo que más se pregunta primero (¿está disponible?, ¿podemos hablar?) va arriba, con la bio.
+const who = [
+  { key: 'availability', label: 'Availability', text: 'Open to freelance projects now.' },
+  { key: 'languages', label: 'Languages', list: ['Spanish (native)', 'English (C1)'], inline: true },
+  { key: 'education', label: 'Education', text: "Bachelor's in Interactive Media Design, Universidad Icesi, Cali. In progress." },
+];
+
+// El kit: cada lista en vertical, una herramienta por línea. Podado por Jean el 2026-10-19.
+// AI tools va agrupada por categoría, en dos columnas (una sola se hacía demasiado larga).
+const kits = [
+  { key: 'tools', label: 'Tools', list: ['Premiere Pro', 'After Effects', 'DaVinci Resolve', 'CapCut', 'Figma', 'Illustrator', 'Photoshop', 'Lightroom', 'InDesign', 'Audition', 'Blender', 'Canva', 'Framer'] },
+  { key: 'code', label: 'Code', list: ['React', 'Astro', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Tailwind CSS', 'Node.js', 'Firebase', 'Git', 'Arduino (C++)'] },
+  {
+    key: 'ai',
+    label: 'AI tools',
+    groups: [
+      { title: 'Assistants & agents', items: ['Claude', 'Claude Code', 'Claude Agents', 'ChatGPT', 'Gemini', 'NotebookLM'] },
+      { title: 'Video', items: ['Veo', 'Sora', 'Runway', 'Kling', 'Google Flow', 'Hedra'] },
+      { title: 'Image', items: ['Midjourney', 'Firefly'] },
+      { title: 'Audio', items: ['ElevenLabs', 'Suno'] },
+    ],
+  },
+];
+---
+
+<section id="about" class="about wrap grid" aria-labelledby="about-title">
+  <h2 id="about-title" class="display title" data-reveal-title>About <span class="soft">me<span class="dot">.</span></span></h2>
+
+  <div class="photo">
+    <AboutPoster />
+  </div>
+
+  <div class="bio" data-reveal-text>
+    {bio.map((p) => <p>{p}</p>)}
+  </div>
+
+  <dl class="who" data-reveal-text>
+    {who.map((f) => (
+      <div class:list={['fact', `fact-${f.key}`]}>
+        <dt class="fact-title">{f.label}</dt>
+        <dd class="fact-value">
+          {f.text && <p>{f.text}</p>}
+          {f.list && (
+            <ul class="inline-list">
+              {f.list.map((t) => (
+                <li><span class="sep" aria-hidden="true"></span>{t}</li>
+              ))}
+            </ul>
+          )}
+        </dd>
+      </div>
+    ))}
+  </dl>
+
+  <dl class="kits" data-reveal-text>
+    {kits.map((f) => (
+      <div class:list={['fact', `fact-${f.key}`]}>
+        <dt class="fact-title">{f.label}</dt>
+        <dd class="fact-value">
+          {f.list && (
+            <ul class="stack">
+              {f.list.map((t) => <li>{t}</li>)}
+            </ul>
+          )}
+          {f.groups && (
+            <div class="groups">
+              {f.groups.map((g) => (
+                <div class="group">
+                  <span class="label group-title">{g.title}</span>
+                  <ul class="stack">
+                    {g.items.map((t) => <li>{t}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </dd>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<style>
+  /* Quién soy a la izquierda (titular, bio, hoja corta), el póster a la derecha, y el kit a todo el
+     ancho debajo. Tres tamaños en la sección: el titular, --display-xs (títulos de datos) y el cuerpo. */
+  .about {
+    grid-template-areas:
+      'title title title title title title title photo photo photo photo photo'
+      'bio   bio   bio   bio   bio   bio   .     photo photo photo photo photo'
+      'who   who   who   who   who   who   .     photo photo photo photo photo'
+      'kits  kits  kits  kits  kits  kits  kits  kits  kits  kits  kits  kits';
+    grid-template-rows: auto auto 1fr auto;
+    align-items: start;
+    padding-block: var(--section-pad);
+  }
+
+  .title {
+    grid-area: title;
+    font-size: var(--display-l);
+  }
+
+  /* La bio en un solo peso, pegada al titular, al tamaño del cuerpo como el resto de la página */
+  .bio {
+    grid-area: bio;
+    margin-top: var(--space-6);
+  }
+
+  .bio p {
+    max-width: var(--measure);
+    font-size: var(--body);
+    line-height: var(--lh-body);
+    color: var(--white);
+    text-wrap: pretty;
+  }
+
+  .bio p + p {
+    margin-top: 1em;
+  }
+
+  /* La hoja corta llena el espacio bajo la bio: Availability y Languages lado a lado, Education a lo
+     ancho de las dos */
+  .who {
+    grid-area: who;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--gutter);
+    margin: var(--space-8) 0 0;
+  }
+
+  .fact-education {
+    grid-column: 1 / -1;
+  }
+
+  /* El kit: tres columnas con la lista en vertical. AI tools es la más larga y va al doble de ancho,
+     con la lista en dos columnas. */
+  .kits {
+    grid-area: kits;
+    display: grid;
+    grid-template-columns: subgrid;
+    row-gap: var(--space-6);
+    margin: var(--space-12) 0 0;
+  }
+
+  .fact-tools { grid-column: 1 / 5; }
+  .fact-code { grid-column: 5 / 8; }
+  .fact-ai { grid-column: 8 / 13; }
+
+  /* AI tools por categoría, en dos columnas: asistentes y video arriba, imagen y audio debajo */
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--gutter);
+  }
+
+  .group-title {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--text-muted);
+  }
+
+  .fact-title {
+    margin-bottom: var(--space-2);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-xs);
+    line-height: var(--lh-display);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .fact-value {
+    margin: 0;
+    color: var(--text);
+  }
+
+  .fact-value p {
+    max-width: 44ch;
+    text-wrap: pretty;
+  }
+
+  /* La lista en vertical: una herramienta por línea, sin viñetas; el orden ya es la jerarquía */
+  .stack li {
+    padding-block: 0.18em;
+  }
+
+  /* Listas en línea (Languages): cada ítem con su cuadrado delante y el primero recortado */
+  .inline-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -34px; /* ancho de .sep (6px) más sus márgenes (14px a cada lado) */
+    clip-path: inset(0 0 0 34px);
+  }
+
+  .inline-list li {
+    white-space: nowrap;
+  }
+
+  /* El póster: ancho limitado también por el alto, para verse entero desde 1280 × 529.
+     Cuando el alto lo achica, se alinea al borde derecho de la grilla. */
+  .photo {
+    grid-area: photo;
+    justify-self: end;
+    width: min(100%, 62svh);
+    margin: 0;
+  }
+
+  /* Escritorio chico: el kit pasa a filas de hoja de rodaje, con el título en las columnas 1 a 4 y la
+     lista en dos columnas en la 5 a 12 */
+  @media (min-width: 761px) and (max-width: 1100px) {
+    .who {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    .fact-education {
+      grid-column: 1;
+    }
+
+    .kits {
+      row-gap: var(--space-6);
+    }
+
+    .fact-tools,
+    .fact-code,
+    .fact-ai {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+    }
+
+    .kits .fact-title {
+      grid-column: 1 / 5;
+      margin-bottom: 0;
+    }
+
+    .kits .fact-value {
+      grid-column: 5 / -1;
+    }
+
+    .fact-tools .stack,
+    .fact-code .stack {
+      columns: 2;
+      column-gap: var(--gutter);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .about {
+      grid-template-areas:
+        'title'
+        'photo'
+        'bio'
+        'who'
+        'kits';
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+    }
+
+    .photo {
+      width: 100%;
+      margin-top: var(--space-4);
+    }
+
+    .who {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+      margin-top: var(--space-8);
+    }
+
+    .fact-education {
+      grid-column: 1;
+    }
+
+    .kits {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-4);
+      margin-top: var(--space-8);
+    }
+
+    .fact-tools,
+    .fact-code,
+    .fact-ai {
+      grid-column: 1;
+    }
+
+    /* En el teléfono las listas van en dos columnas para no hacer la página eterna */
+    .fact-tools .stack,
+    .fact-code .stack {
+      columns: 2;
+      column-gap: var(--gutter);
+    }
+  }
+</style>

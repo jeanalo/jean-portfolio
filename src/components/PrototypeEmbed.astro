@@ -1,0 +1,191 @@
+---
+// El prototipo de Figma incrustado, cuando la app real pide una cuenta que el visitante no tiene.
+// Arriba, el titular con la firma (caja azul + itálica fina) en las columnas 1 a 5 y el texto en la 6 a 12,
+// como las secciones del caso. Debajo, las vistas (escritorio y móvil) lado a lado y a la misma altura:
+// se prueban las dos sin esperar a que cargue otra. La altura sale del ancho de la grilla repartido
+// entre las proporciones de las vistas, y no pasa del 78% del alto de la pantalla. Figma dibuja su
+// propio dispositivo sobre fondo negro, así que cada marco es solo un rectángulo duro.
+// Hasta 1100 px las vistas se apilan; en un teléfono va primero la marcada como `mobile`.
+// Los iframes se cargan diferidos.
+import { paragraphs } from '../lib/projects';
+
+interface Props {
+  boxed: string;
+  accent: string;
+  text: string;
+  link?: string;
+  views: { label: string; src: string; ratio: string; mobile: boolean; link?: string }[];
+}
+const { boxed, accent, text, link, views } = Astro.props;
+const paras = paragraphs(text);
+// "16 / 10" → 1.6. La suma reparte el ancho: con la misma altura, cada vista mide alto × proporción.
+const ratio = (r: string) => {
+  const [a, b] = r.split('/').map((n) => Number(n.trim()));
+  return b ? a / b : a;
+};
+const ratioSum = views.reduce((sum, v) => sum + ratio(v.ratio), 0);
+// Sin enlace propio, la vista se abre en Figma con su mismo nodo, fuera del modo incrustado
+const openLink = (v: Props['views'][number]) =>
+  v.link ?? (views.length === 1 ? link : undefined) ?? v.src.replace('embed.figma.com', 'www.figma.com').replace(/&(scaling|content-scaling|embed-host|hide-ui|bg-color)=[^&]*/g, '');
+---
+
+<section class="proto wrap grid" aria-labelledby="proto-title" data-proto>
+  <h2 id="proto-title" class="display title" data-box-title>
+    <span class="box">{boxed}</span> <span class="soft">{accent}<span class="dot">.</span></span>
+  </h2>
+  <div class="lead" data-reveal-text>
+    {paras.map((p) => <p>{p.text}</p>)}
+  </div>
+
+  <div class="views" style={`--ratio-sum: ${ratioSum.toFixed(4)}; --gaps: ${views.length - 1}`}>
+    {views.map((v) => (
+      <figure class:list={['view', { 'is-mobile': v.mobile }]} style={`--ratio: ${v.ratio}`} data-reveal-media>
+        <figcaption class="cap">
+          <span class="label name"><span class="mark" aria-hidden="true"></span>{v.label}</span>
+          <a class="label open" href={openLink(v)} target="_blank" rel="noopener noreferrer">
+            Open in Figma <span aria-hidden="true">→</span>
+          </a>
+        </figcaption>
+        <div class="screen">
+          <iframe
+            src={v.src}
+            title={`TripSync prototype, ${v.label.toLowerCase()}`}
+            loading="lazy"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </figure>
+    ))}
+  </div>
+</section>
+
+<style>
+  .proto {
+    align-items: start;
+    row-gap: var(--space-4);
+    padding-top: var(--section-pad);
+  }
+
+  .title {
+    grid-column: 1 / span 5;
+    font-size: var(--display-case);
+  }
+
+  /* La itálica entra deslizándose (wipes.ts): un span en línea no se transforma */
+  .title .soft {
+    display: inline-block;
+  }
+
+  .lead {
+    grid-column: 6 / span 7;
+    max-width: var(--measure);
+  }
+
+  .lead p + p {
+    margin-top: 1.1em;
+  }
+
+  /* Las vistas lado a lado, con la misma altura: el ancho de la grilla (100cqi) menos los gutters,
+     repartido entre las proporciones, sin pasar del 78% del alto de la pantalla */
+  .views {
+    grid-column: 1 / -1;
+    container-type: inline-size;
+    display: flex;
+    align-items: flex-end;
+    gap: var(--gutter);
+    margin-top: var(--space-2);
+  }
+
+  .view {
+    --h: min(78svh, calc((100cqi - var(--gaps) * var(--gutter)) / var(--ratio-sum)));
+    flex: none;
+    width: calc(var(--h) * (var(--ratio)));
+    min-width: 0;
+  }
+
+  /* Encima de cada marco, su nombre (con el cuadrado naranja) y el enlace para abrirlo en Figma */
+  .cap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 var(--space-3);
+  }
+
+  .name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7em;
+    min-height: 44px;
+    color: var(--white);
+  }
+
+  .mark {
+    width: 6px;
+    height: 6px;
+    background: var(--orange);
+  }
+
+  .open {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 44px;
+    color: var(--text-muted);
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .open span {
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .open:hover {
+      color: var(--orange);
+    }
+
+    .open:hover span {
+      transform: translateX(4px);
+    }
+  }
+
+  .screen {
+    width: 100%;
+    aspect-ratio: var(--ratio);
+    background: var(--black);
+    outline: 1px solid rgb(242 242 240 / 0.12);
+  }
+
+  .screen iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* Hasta 1100 px, lado a lado la vista móvil quedaría muy angosta: se apilan, cada una a lo ancho
+     y limitada por el alto de la pantalla */
+  @media (max-width: 1100px) {
+    .views {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-6);
+    }
+
+    .view {
+      --h: min(76svh, calc(100cqi / (var(--ratio))));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .title,
+    .lead {
+      grid-column: 1 / -1;
+    }
+
+    /* En un teléfono, primero la vista de teléfono */
+    .view.is-mobile {
+      order: -1;
+    }
+  }
+</style>

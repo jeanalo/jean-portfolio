@@ -1,0 +1,116 @@
+---
+// Imagen de una sección: rectángulo duro en blanco y negro.
+// Sin `src`, un bloque Klein con su etiqueta de pendiente (solo fuera de producción).
+import { showPending } from '../lib/projects';
+import { imageSize } from '../lib/imageSize';
+
+interface Props {
+  src?: string;
+  alt?: string;
+  caption?: string;
+  layout: 'full' | '8/4' | '7/5';
+  color?: boolean;
+}
+const { src, alt = '', caption, layout, color = false } = Astro.props;
+// Medidas reales del archivo: reservan el espacio y evitan que la página salte al cargar
+const dim = src ? imageSize(src) : undefined;
+const visible = Boolean(src) || showPending;
+const split = layout === '8/4' ? 'l-8' : layout === '7/5' ? 'l-7' : 'l-full';
+---
+
+{visible && (
+  <figure class:list={['case-media', 'grid', split]} data-surface>
+    {src ? (
+      <img
+        class:list={['frame', { bw: !color, whole: color }]}
+        src={src}
+        alt={alt}
+        width={dim?.width}
+        height={dim?.height}
+        style={dim && color ? `--ar: ${dim.width} / ${dim.height}` : undefined}
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <div class="frame slot">
+        <span class="label"><span aria-hidden="true">■</span> Pending image</span>
+      </div>
+    )}
+    {caption && <figcaption class="caption">{caption}</figcaption>}
+  </figure>
+)}
+
+<style>
+  .case-media {
+    grid-column: 1 / -1;
+    row-gap: var(--space-2);
+    align-items: end;
+  }
+
+  .frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .slot {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-3);
+    background: var(--klein);
+  }
+
+  .slot .label {
+    color: var(--offwhite);
+  }
+
+  .caption {
+    font-size: var(--label);
+    line-height: 1.5;
+    color: var(--text-muted);
+    max-width: 40ch;
+  }
+
+  .l-full .frame {
+    grid-column: 1 / -1;
+  }
+
+  .l-full .caption {
+    grid-column: 1 / span 7;
+  }
+
+  .l-8 .frame {
+    grid-column: 1 / span 8;
+    aspect-ratio: 4 / 3;
+  }
+
+  .l-8 .caption {
+    grid-column: 9 / span 4;
+  }
+
+  .l-7 .frame {
+    grid-column: 1 / span 7;
+    aspect-ratio: 4 / 3;
+  }
+
+  .l-7 .caption {
+    grid-column: 8 / span 5;
+  }
+
+  /* Trabajo de diseño: se ve entero, con su proporción real. Una pieza de diseño no se recorta.
+     La proporción va explícita (--ar, calculada del archivo al generar el sitio): con `auto` a secas
+     el navegador descarta la que deduce de width y height, y la imagen diferida queda en cero de alto. */
+  /* Con el selector de la figura delante, gana también sobre el 4:3 de los cortes 8/4 y 7/5 */
+  .case-media .frame.whole {
+    aspect-ratio: var(--ar, 16 / 9);
+    height: auto;
+    object-fit: fill;
+  }
+
+  @media (max-width: 760px) {
+    .case-media .frame,
+    .case-media .caption {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

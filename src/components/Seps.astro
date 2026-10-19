@@ -1,0 +1,18 @@
+---
+// Lista en línea separada por cuadrados naranjas. Nunca comas.
+interface Props {
+  items: (string | number | undefined)[];
+}
+// Los campos opcionales vacíos no dejan separadores sueltos.
+const items = Astro.props.items.filter((x) => x !== undefined && x !== '');
+---
+
+{items.map((item, i) => (
+  <>{i > 0 && <span class="sep" aria-hidden="true"></span>}<span class="sep-item">{item}</span></>
+))}
+
+<style>
+  .sep-item {
+    white-space: nowrap;
+  }
+</style>

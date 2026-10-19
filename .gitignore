@@ -1,0 +1,38 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# videos originales (fuente de las piezas; al sitio solo van los de public/)
+*.mov
+/Puerta Abierta - Skema.mp4
+
+# capturas de revisión (se regeneran con scripts/capture.mjs)
+.impeccable/
+
+# binario del launcher de Impeccable (se descarga solo en el primer uso)
+.claude/skills/impeccable/scripts/bin/
+
+# respaldos y archivos sueltos de trabajo
+.backup/
+*.tmp.mjs

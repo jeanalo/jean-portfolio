@@ -1,0 +1,189 @@
+---
+// Hero: headline a la izquierda (7), escarapela colgando a la derecha (5).
+// El video ya no vive aquí: tiene su sección justo después (HomeVideo.astro).
+import CrewPass from './CrewPass.astro';
+
+// Si no cabe en una línea, se parte en dos y el separador del comienzo de línea queda recortado.
+// En móvil solo van los dos primeros: lo de Colombia y el mundo ya lo dicen la escarapela y la intro.
+const status = [
+  { text: 'Interactive media designer' },
+  { text: 'Open to work' },
+  { text: 'Based in Colombia, working worldwide', desktopOnly: true },
+];
+const phrases = ['Editing video', 'Building brand systems', 'Designing interfaces', 'Animating type'];
+---
+
+<section class="hero wrap grid" aria-labelledby="hero-title" data-hero>
+  <div class="copy" data-hero-hide>
+    <p class="label status" data-hero-disciplines>
+      <span class="status-row">
+        {status.map((item) => (
+          <span class:list={['status-item', { 'desktop-only': item.desktopOnly }]}><span class="sep" aria-hidden="true"></span>{item.text}</span>
+        ))}
+      </span>
+    </p>
+
+    <h1 id="hero-title" class="display headline">
+      <span class="line" data-hero-line><span class="line-inner">Hey. I make</span></span>
+      <span class="line" data-hero-line>
+        <span class="box" data-hero-box>stuff</span>
+        <span class="soft" data-hero-move>move<span class="dot">.</span></span>
+      </span>
+    </h1>
+
+    <!-- Línea que se escribe sola. El lector de pantalla lee todo de una vez. -->
+    <p class="typed">
+      <span class="typed-arrow" aria-hidden="true">→</span>
+      <span class="sr-only">Editing video, building brand systems, designing interfaces and animating type.</span>
+      <span class="typed-text" aria-hidden="true" data-typed data-phrases={JSON.stringify(phrases)}>{phrases[0]}</span><span class="caret" aria-hidden="true" data-caret></span>
+    </p>
+
+    <p class="subline" data-hero-sub>Loud enough to notice, clear enough to use.</p>
+  </div>
+
+  <div class="stage">
+    <CrewPass />
+  </div>
+</section>
+
+<style>
+  /* El hero ocupa como mínimo la primera pantalla: nada de la sección siguiente asoma antes del primer
+     scroll. Si su contenido es más bajo que la pantalla, queda centrado en ella. */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow-x: clip; /* el lanyard sale por arriba de la pantalla */
+    min-height: 100vh;
+    min-height: 100svh;
+    align-items: center;
+    align-content: center;
+    padding-block: clamp(1rem, 4svh, 3rem) clamp(1rem, 5svh, 4rem);
+  }
+
+  .copy {
+    grid-column: 1 / span 7;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Cada ítem lleva su separador delante. La fila se corre a la izquierda lo que mide un separador
+     y el párrafo la recorta: el del primer ítem de cada línea queda fuera, sin separadores sueltos. */
+  .status {
+    overflow: clip;
+  }
+
+  .status-row {
+    --sep-w: calc(6px + 28px); /* ancho de .sep más sus márgenes */
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+    margin-left: calc(var(--sep-w) * -1);
+  }
+
+  .status-item {
+    white-space: nowrap;
+  }
+
+  .headline {
+    margin-top: clamp(1rem, 4svh, 3rem);
+    font-size: min(var(--display-hero), 16svh);
+    white-space: nowrap;
+  }
+
+  .headline .line {
+    padding-block: 0.03em;
+  }
+
+  .line-inner {
+    display: inline-block;
+  }
+
+  .headline .box {
+    margin-block: 0.06em;
+  }
+
+  .headline .soft {
+    display: inline-block;
+  }
+
+  /* La línea que se escribe sola es el único amarillo de la vista.
+     La flecha va en blanco: el naranja y el amarillo nunca se tocan. */
+  .typed {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+    min-height: 1.5em;
+    margin-top: clamp(1rem, 6svh, 4rem);
+    font-weight: 600;
+    color: var(--yellow);
+  }
+
+  .typed-arrow {
+    color: var(--white);
+  }
+
+  .caret {
+    display: inline-block;
+    width: 0.08em;
+    height: 1.05em;
+    margin-left: -0.35em;
+    align-self: center;
+    background: var(--yellow);
+    opacity: 0;
+  }
+
+  .subline {
+    margin-top: var(--space-2);
+    max-width: var(--measure);
+    color: var(--text-muted);
+  }
+
+  .stage {
+    grid-column: 8 / span 5;
+    align-self: stretch;
+  }
+
+  @media (max-width: 760px) {
+    .hero {
+      row-gap: var(--space-4);
+      padding-bottom: var(--space-8);
+    }
+
+    .copy,
+    .stage {
+      grid-column: 1 / -1;
+    }
+
+    /* La escarapela se corre a la derecha; la subline deja libre el paso del lanyard */
+    .stage {
+      position: relative;
+      left: 14%;
+    }
+
+    .subline {
+      max-width: 14em;
+    }
+
+    /* En móvil, la fila de estado va en columna, sin separadores y lejos del lanyard */
+    .status {
+      max-width: 17rem;
+    }
+
+    .status-row {
+      flex-direction: column;
+      margin-left: 0;
+    }
+
+    .status .sep {
+      display: none;
+    }
+
+    .status-item {
+      white-space: normal;
+    }
+
+    .status .desktop-only {
+      display: none;
+    }
+  }
+</style>

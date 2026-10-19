@@ -1,0 +1,200 @@
+---
+// Selected work. El trabajo se ve sin depender del hover:
+// escritorio, lista en 7 columnas y la portada del caso activo grande al lado, en 5;
+// móvil, cada fila con su portada 4:3.
+// Con motion y 3 casos publicados o más, la lista gira como un tambor fijado (src/scripts/motion/work.ts).
+// Mientras tanto, lista simple: la portada sigue a la fila que cruza la mitad de la pantalla.
+// Los borradores salen en producción como filas sin enlace.
+import WorkRow from '../WorkRow.astro';
+import { getAllProjects, pad, showPending, yearLabel } from '../../lib/projects';
+import { imageSize } from '../../lib/imageSize';
+
+const all = await getAllProjects();
+const projects = all.map((p) => ({
+  id: p.id,
+  num: pad(p.data.order),
+  title: p.data.shortTitle ?? p.data.title,
+  cover: p.data.cover,
+  coverColor: p.data.coverColor,
+  dim: p.data.cover ? imageSize(p.data.cover) : undefined,
+  href: !p.data.draft || showPending ? `/work/${p.id}/` : undefined,
+  tags: [...p.data.disciplines, yearLabel(p.data), p.data.draft ? 'In progress' : undefined],
+}));
+const drum = all.filter((p) => !p.data.draft).length >= 3;
+---
+
+<section id="work" class="work wrap" aria-labelledby="work-title" data-drum={drum ? '' : undefined}>
+  <h2 id="work-title" class="label">Selected work</h2>
+
+  <div class="work-body grid">
+    <div class="drum" data-drum-window>
+      <ol class="work-list">
+        {projects.map((p, i) => (
+          <li data-work-item={i}>
+            <WorkRow href={p.href} num={p.num} title={p.title} tags={p.tags} compact>
+              <figure class="row-cover" aria-hidden="true" data-surface>
+                {p.cover ? (
+                  <img class:list={[{ bw: !p.coverColor }]} src={p.cover} alt="" width={p.dim?.width} height={p.dim?.height} loading="lazy" decoding="async" />
+                ) : (
+                  <span class="slot">{showPending && <span class="label">■ Pending cover</span>}</span>
+                )}
+              </figure>
+            </WorkRow>
+          </li>
+        ))}
+      </ol>
+    </div>
+
+    <!-- Portada del caso activo (escritorio). Cambia con el scroll, no con el hover. Un clic en la
+         portada abre el caso, como la fila. El enlace no entra en el orden del teclado ni lo lee el
+         lector de pantalla: la fila ya es el enlace accesible. -->
+    <div class="covers" aria-hidden="true" data-covers>
+      {projects.map((p, i) => {
+        const Tag = p.href ? 'a' : 'div';
+        return (
+          <Tag class:list={['cover-card', { 'is-active': i === 0 }]} href={p.href} tabindex={p.href ? -1 : undefined} data-cover-card={i} data-surface>
+            {p.cover ? (
+              <img class:list={[{ bw: !p.coverColor }]} src={p.cover} alt="" width={p.dim?.width} height={p.dim?.height} loading="lazy" decoding="async" />
+            ) : (
+              <span class="slot">{showPending && <span class="label">■ Pending cover</span>}</span>
+            )}
+            <span class="label caption">{p.num}<span class="sep"></span>{p.title}</span>
+          </Tag>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Sin el tambor (movimiento reducido, menos de 3 casos o sin JS de motion), la portada activa
+  // sigue a la fila que cruza la mitad de la pantalla. Con el tambor, work.ts avisa con work:active.
+  const sec = document.querySelector<HTMLElement>('#work');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-cover-card]')];
+  const items = [...document.querySelectorAll<HTMLElement>('[data-work-item]')];
+
+  const setActive = (i: number) => cards.forEach((c, k) => c.classList.toggle('is-active', k === i));
+
+  if (sec && cards.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.workItem));
+        });
+      },
+      { rootMargin: '-50% 0px -50% 0px' },
+    );
+    const watch = () => items.forEach((el) => io.observe(el));
+    watch();
+    sec.addEventListener('work:active', (e) => setActive((e as CustomEvent<number>).detail));
+    sec.addEventListener('work:drum', (e) => ((e as CustomEvent<boolean>).detail ? io.disconnect() : watch()));
+  }
+</script>
+
+<style>
+  .work {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    padding-block: var(--section-pad);
+  }
+
+  .work-body {
+    margin-top: var(--space-4);
+    align-items: center;
+  }
+
+  .drum {
+    grid-column: 1 / span 7;
+  }
+
+  /* Ventana del tambor: solo cuando el motion lo activa (work.ts agrega .is-drum) */
+  :global(.is-drum) .drum {
+    height: 64vh;
+    overflow: clip;
+  }
+
+  /* Portada grande del caso activo: póster, no vidrio */
+  .covers {
+    grid-column: 8 / span 5;
+    position: sticky;
+    top: 22vh;
+    align-self: start;
+    display: grid;
+    transform: rotate(var(--tilt));
+  }
+
+  :global(.is-drum) .covers {
+    position: relative;
+    top: auto;
+    align-self: center;
+  }
+
+  /* La portada cambia con un corte seco, como en edición, no con un fundido */
+  .cover-card {
+    grid-area: 1 / 1;
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Solo la portada visible recibe el clic */
+  .cover-card.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 16:9, el formato de la casa: las portadas son piezas de diseño y se ven enteras, sin recorte */
+  .cover-card img,
+  .slot {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .slot {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-2);
+    background: var(--klein);
+  }
+
+  .slot .label {
+    color: var(--offwhite);
+  }
+
+  .caption {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--text-muted);
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a.cover-card:hover .caption {
+      color: var(--orange);
+    }
+  }
+
+  /* En escritorio la portada vive en el panel; en móvil, dentro de cada fila */
+  .row-cover {
+    display: none;
+  }
+
+  @media (max-width: 760px) {
+    .drum {
+      grid-column: 1 / -1;
+    }
+
+    .covers {
+      display: none;
+    }
+
+    .row-cover {
+      display: block;
+      grid-column: 1 / -1;
+      margin-top: var(--space-3);
+    }
+  }
+</style>

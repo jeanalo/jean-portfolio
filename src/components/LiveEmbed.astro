@@ -1,0 +1,213 @@
+---
+// El producto real, incrustado: la app desplegada dentro de un teléfono que se usa ahí mismo.
+// 7/5: a la izquierda el titular con la firma (caja azul + itálica fina) y cómo entrar; a la derecha
+// el teléfono. El teléfono es un objeto, como la escarapela: una placa de papel con esquinas rectas,
+// rotada -2°, con la app dentro. La app se dibuja a su tamaño de teléfono (390 × 844 por defecto) y se
+// escala para caber en la columna y en el alto de la pantalla, así se ve igual que en un celular.
+// Sin JS, el iframe ocupa la pantalla del teléfono sin escalar (la app es responsive).
+interface Props {
+  src: string;
+  title: string;
+  boxed: string;
+  accent: string;
+  text: string;
+  width: number;
+  height: number;
+}
+import { paragraphs } from '../lib/projects';
+
+const { src, title, boxed, accent, text, width, height } = Astro.props;
+const paras = paragraphs(text);
+const host = new URL(src).host;
+---
+
+<section class="live wrap grid" aria-labelledby="live-title" data-live>
+  <div class="aside">
+    <h2 id="live-title" class="display title" data-box-title>
+      <span class="box">{boxed}</span> <span class="soft">{accent}<span class="dot">.</span></span>
+    </h2>
+    <div class="lead" data-reveal-text>
+      {paras.map((p) => <p>{p.text}</p>)}
+    </div>
+    <a class="label open" href={src} target="_blank" rel="noopener noreferrer">
+      Open {host} in a new tab <span aria-hidden="true">→</span>
+    </a>
+  </div>
+
+  <div class="stage">
+    <div class="device" style={`--w: ${width}; --h: ${height}`} data-reveal-media>
+      <span class="speaker" aria-hidden="true"></span>
+      <div class="screen" data-live-screen>
+        <iframe
+          src={src}
+          title={title}
+          width={width}
+          height={height}
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          allow="clipboard-write"
+          data-live-frame
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // La app se dibuja a su ancho lógico y se escala a la pantalla del teléfono: así no se aprieta
+  // en una columna angosta. Solo transform.
+  document.querySelectorAll<HTMLElement>('[data-live-screen]').forEach((screen) => {
+    const frame = screen.querySelector<HTMLIFrameElement>('[data-live-frame]');
+    if (!frame) return;
+    const w = Number(frame.getAttribute('width'));
+    const h = Number(frame.getAttribute('height'));
+    screen.classList.add('is-scaled');
+    const fit = () => {
+      const k = screen.clientWidth / w;
+      frame.style.width = `${w}px`;
+      frame.style.height = `${h}px`;
+      frame.style.transform = `scale(${k})`;
+    };
+    new ResizeObserver(fit).observe(screen);
+    fit();
+  });
+</script>
+
+<style>
+  .live {
+    align-items: start;
+    row-gap: var(--space-6);
+    padding-top: var(--section-pad);
+  }
+
+  /* La columna de texto se estira al alto del teléfono: el enlace queda a la altura de su pie,
+     así no queda un hueco negro debajo de las instrucciones */
+  .live {
+    align-items: stretch;
+  }
+
+  .aside {
+    grid-column: 1 / span 6;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .aside .open {
+    margin-top: auto;
+  }
+
+  .title {
+    font-size: var(--display-case);
+  }
+
+  /* La itálica entra deslizándose (wipes.ts): un span en línea no se transforma */
+  .title .soft {
+    display: inline-block;
+  }
+
+  .lead {
+    max-width: var(--measure);
+  }
+
+  .lead p + p {
+    margin-top: 1.1em;
+  }
+
+  /* Enlace de texto chico: naranja en hover, la flecha se corre */
+  .open {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    min-height: 44px;
+    align-self: flex-start;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .open span {
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .open:hover {
+      color: var(--orange);
+    }
+
+    .open:hover span {
+      transform: translateX(4px);
+    }
+  }
+
+  /* El teléfono en las 5 columnas de la derecha, limitado por el alto de la pantalla */
+  .stage {
+    grid-column: 8 / span 5;
+    display: flex;
+    justify-content: center;
+  }
+
+  .device {
+    --bezel: 12px;
+    --chin: 34px;
+    width: min(100%, calc(84svh * var(--w) / var(--h) + var(--bezel) * 2));
+    padding: var(--chin) var(--bezel);
+    background: var(--offwhite);
+    transform: rotate(var(--tilt));
+    position: relative;
+  }
+
+  /* El parlante: una barra negra recta, como el clip de la escarapela */
+  .speaker {
+    position: absolute;
+    top: calc(var(--chin) / 2 - 3px);
+    left: 50%;
+    width: 22%;
+    height: 6px;
+    margin-left: -11%;
+    background: var(--black);
+  }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--w) / var(--h);
+    overflow: hidden;
+    background: var(--black);
+  }
+
+  .screen iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .screen.is-scaled iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+  }
+
+  @media (max-width: 1100px) {
+    .aside {
+      grid-column: 1 / span 7;
+    }
+
+    .stage {
+      grid-column: 8 / span 5;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .aside,
+    .stage {
+      grid-column: 1 / -1;
+    }
+
+    .device {
+      --bezel: 8px;
+      --chin: 26px;
+      width: min(100%, calc(78svh * var(--w) / var(--h) + var(--bezel) * 2));
+    }
+  }
+</style>

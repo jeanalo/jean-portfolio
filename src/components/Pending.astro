@@ -1,0 +1,30 @@
+---
+// Contenido que Jean todavía no entrega. Solo se ve fuera de producción.
+interface Props {
+  note?: string;
+}
+const { note } = Astro.props;
+---
+
+<p class="pending">
+  <span class="label tag"><span aria-hidden="true">■</span> Pending</span>
+  {note && <span class="note">{note}</span>}
+</p>
+
+<style>
+  .pending {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    row-gap: var(--space-1);
+    max-width: var(--measure);
+    font-size: var(--label);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .tag {
+    color: var(--text-muted);
+  }
+</style>

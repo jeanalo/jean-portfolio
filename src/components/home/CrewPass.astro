@@ -1,0 +1,284 @@
+---
+// Escarapela: credencial de producción colgada de un lanyard naranja.
+// La funda plástica es la capa de vidrio (GlassSleeve, el mismo material de la foto de About).
+// La física de péndulo vive en src/scripts/motion/badge.ts.
+// Los textos impresos de la tarjeta miden 11px como mínimo, aunque la tarjeta se achique.
+import GlassSleeve from '../GlassSleeve.astro';
+
+// Código de barras determinista a partir de un texto: barras negras de 1 a 4 unidades.
+const code = 'JEAN-ALOMIA-CREW-2026';
+let x = 0;
+const bars: { x: number; w: number }[] = [];
+for (const ch of code) {
+  const c = ch.charCodeAt(0);
+  const w = (c % 4) + 1;
+  bars.push({ x, w });
+  x += w + ((c >> 2) % 3) + 1;
+}
+const barsWidth = x;
+
+const strapText = Array.from({ length: 8 });
+---
+
+<div class="pass-stage" data-badge-stage>
+  <div class="rig" data-badge-rig data-hero-hide>
+    <div class="strap" aria-hidden="true" data-surface>
+      <span class="strap-print">
+        {strapText.map(() => (
+          <span class="strap-item">
+            <b>Jean Alomia</b><i class="strap-sep">■</i><b>Stuff</b> <em>move</em>
+          </span>
+        ))}
+      </span>
+    </div>
+
+    <div class="clip" aria-hidden="true"><span class="clip-jaw"></span></div>
+
+    <GlassSleeve class="sleeve" data-badge-card data-surface>
+      <div class="card">
+        <p class="band"><span>Crew pass</span><span class="sep" aria-hidden="true"></span><span>2026</span></p>
+
+        <div class="card-body">
+          <img
+            class="photo bw"
+            src="/images/jean-portrait.jpg"
+            alt="Jean Alomia"
+            width="1254"
+            height="1254"
+            decoding="async"
+          />
+
+          <p class="name">Jean Alomia</p>
+          <p class="role">Interactive media designer</p>
+
+          <div class="foot">
+            <svg class="barcode" viewBox={`0 0 ${barsWidth} 20`} preserveAspectRatio="none" aria-hidden="true">
+              {bars.map((b) => <rect x={b.x} y="0" width={b.w} height="20" />)}
+            </svg>
+            <p class="city">Cali, CO</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destello del banner como sticker, en azul eléctrico: el amarillo de la vista es la línea que se escribe sola -->
+      <svg class="sticker" viewBox="0 0 100 112" aria-hidden="true">
+        <path d="M50 0 C51 37 63 53 100 56 C63 59 51 75 50 112 C49 75 37 59 0 56 C37 53 49 37 50 0 Z" />
+      </svg>
+
+    </GlassSleeve>
+  </div>
+</div>
+
+<style>
+  .pass-stage {
+    /* Ancho limitado también por el alto: el hero entero cabe desde 1280 × 530 */
+    --card-w: min(clamp(14rem, 21vw, 19.5rem), 36svh);
+    --pad: calc(var(--card-w) * 0.035);
+    --sleeve-pad: var(--pad);
+    --clip-h: calc(var(--card-w) * 0.13);
+    --strap-w: calc(var(--card-w) * 0.1);
+    --strap: 160vh;
+    --card-top: clamp(1.5rem, 10svh, 9rem);
+    position: relative;
+    /* El rig va en absoluto: el escenario reserva el alto real de la tarjeta colgada */
+    height: 100%;
+    min-height: calc(var(--card-top) + var(--clip-h) * 0.55 + var(--card-w) * 1.6 + var(--pad) * 2);
+  }
+
+  /* El pivote del péndulo está arriba del todo, fuera de la pantalla */
+  .rig {
+    position: absolute;
+    left: 50%;
+    top: calc(var(--card-top) - var(--strap) - var(--clip-h));
+    width: calc(var(--card-w) + var(--pad) * 2);
+    margin-left: calc((var(--card-w) + var(--pad) * 2) / -2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: 50% 0;
+    touch-action: pan-y;
+  }
+
+  /* Lanyard naranja impreso en negro */
+  .strap {
+    position: relative;
+    width: var(--strap-w);
+    height: var(--strap);
+    overflow: hidden;
+    background: var(--orange);
+  }
+
+  /* Texto impreso en vertical, de abajo hacia arriba desde el clip */
+  .strap-print {
+    position: absolute;
+    inset: 0;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: calc(var(--strap-w) * 0.42);
+    line-height: var(--strap-w);
+    white-space: nowrap;
+    color: var(--black);
+  }
+
+  .strap-item {
+    padding-inline: 0.9em;
+    text-transform: uppercase;
+  }
+
+  .strap-item b {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+
+  .strap-item em {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-style: italic;
+    text-transform: none;
+  }
+
+  .strap-sep {
+    margin-inline: 0.5em;
+    font-style: normal;
+  }
+
+  /* Clip negro de esquinas rectas */
+  .clip {
+    position: relative;
+    z-index: 2;
+    width: calc(var(--strap-w) * 1.5);
+    height: var(--clip-h);
+    margin-bottom: calc(var(--clip-h) * -0.45);
+    background: var(--black);
+    border: 2px solid rgb(242 242 240 / 0.28);
+  }
+
+  .clip-jaw {
+    position: absolute;
+    left: 22%;
+    right: 22%;
+    bottom: 18%;
+    height: 22%;
+    background: rgb(242 242 240 / 0.22);
+  }
+
+  /* Funda: un poco más grande que la tarjeta (el aire lo pone GlassSleeve con --sleeve-pad) */
+  .sleeve {
+    width: 100%;
+  }
+
+  /* Solo se ve como arrastrable cuando badge.ts activó el arrastre */
+  .sleeve[data-draggable] {
+    cursor: grab;
+  }
+
+  .sleeve[data-draggable]:active {
+    cursor: grabbing;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 5 / 8;
+    font-size: calc(var(--card-w) / 19);
+    background: var(--offwhite);
+    color: var(--black);
+  }
+
+  .band {
+    display: flex;
+    align-items: center;
+    padding: 0.85em 1em;
+    background: var(--klein);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: max(0.72em, 0.6875rem); /* 11px como mínimo */
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .band .sep {
+    margin-inline: 0.8em;
+  }
+
+  .card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1em;
+  }
+
+  .photo {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    object-position: 50% 20%;
+  }
+
+  .name {
+    margin-top: 0.7em;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.9em;
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+  }
+
+  .role {
+    margin-top: 0.3em;
+    font-family: var(--font-body);
+    font-size: max(0.9em, 0.6875rem);
+    line-height: 1.3;
+  }
+
+  .city {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: max(0.6em, 0.6875rem); /* 11px como mínimo */
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .foot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1em;
+    margin-top: auto;
+  }
+
+  .barcode {
+    width: 58%;
+    height: 2.2em;
+    fill: var(--black);
+  }
+
+  /* Sticker azul eléctrico en la esquina de abajo a la derecha */
+  .sticker {
+    position: absolute;
+    right: calc(var(--pad) * -0.6);
+    bottom: calc(var(--card-w) * 0.2);
+    width: calc(var(--card-w) * 0.22);
+    transform: rotate(-6deg);
+    fill: var(--electric);
+  }
+
+  @media (max-width: 760px) {
+    .pass-stage {
+      --card-w: clamp(11.5rem, 56vw, 15rem);
+      --card-top: 3.5rem;
+      height: calc(var(--card-top) + var(--card-w) * 1.6 + var(--pad) * 2 + 2rem);
+    }
+
+    /* En móvil el lanyard sube en diagonal hacia la esquina superior derecha,
+       para no cruzar el nav ni las etiquetas. La tarjeta sigue derecha. */
+    .strap {
+      transform-origin: 50% 100%;
+      transform: rotate(20deg);
+    }
+  }
+</style>

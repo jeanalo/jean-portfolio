@@ -1,0 +1,636 @@
+---
+// Una pieza de una selección de video (perfil C): titular, el video incrustado y su ficha.
+// - La duración y el formato salen del archivo al generar el sitio (src/lib/videoMeta.ts), nunca a mano.
+// - Las piezas van en zigzag, como cortes alternados: el marco a un lado y la ficha al otro, 8/4 en
+//   horizontal y 5/7 en vertical (el vertical se limita por el alto de la pantalla y se ve entero).
+// - Reproducción como la intro del home: no arranca sola, Play la arranca con sonido, suena una sola a
+//   la vez, se pausa si sale de la vista o si la pestaña se oculta y al terminar vuelve a su póster.
+//   Debajo del marco, una línea de tiempo de edición: barra con el cuadrado naranja como cabezal,
+//   tiempo y pantalla completa. Sin JS, el video trae los controles del navegador.
+// - Motion (src/scripts/motion/pieces.ts): el marco entra tapado por un bloque Klein que se barre con
+//   el scroll, mientras se endereza de -2° a 0°, y la línea de tiempo se dibuja. Después entra la ficha.
+import { videoMeta } from '../lib/videoMeta';
+import { imageSize } from '../lib/imageSize';
+import { pad } from '../lib/projects';
+
+interface Props {
+  index: number;
+  total: number;
+  title: string;
+  accent?: string;
+  client: string;
+  type: string;
+  year: number;
+  role: string;
+  language: string;
+  purpose: string;
+  standout: string;
+  video: string;
+  poster: string;
+  note?: string;
+}
+
+const p = Astro.props;
+const meta = videoMeta(p.video);
+const still = imageSize(p.poster);
+const width = meta?.width ?? still?.width ?? 1920;
+const height = meta?.height ?? still?.height ?? 1080;
+const shape = meta?.orientation === 'Vertical' ? 'vertical' : 'horizontal';
+// Zigzag: la primera pieza con el marco a la izquierda, la segunda a la derecha, y así
+const side = p.index % 2 === 0 ? 'left' : 'right';
+const id = `piece-${p.index + 1}`;
+const name = p.accent ? `${p.title} (${p.accent})` : p.title;
+
+const facts = [
+  { label: 'Client', value: p.client },
+  { label: 'Type', value: p.type },
+  { label: 'Year', value: String(p.year) },
+  meta && { label: 'Duration', value: meta.duration },
+  meta && { label: 'Format', value: `${meta.orientation} ${meta.ratio}` },
+  { label: 'Language', value: p.language, wide: p.language.length > 24 },
+].filter(Boolean) as { label: string; value: string; wide?: boolean }[];
+
+const texts = [
+  { label: 'My role', text: p.role },
+  { label: 'What it was for', text: p.purpose },
+  { label: 'What makes it good', text: p.standout },
+];
+---
+
+<section
+  class="piece wrap grid"
+  aria-labelledby={`${id}-title`}
+  data-piece
+  data-shape={shape}
+  data-side={side}
+  style={`--ar: ${width} / ${height}`}
+>
+  <header class="piece-head">
+    <span class="label num" aria-hidden="true">{pad(p.index + 1)} / {pad(p.total)}</span>
+    <h2 class="piece-title" id={`${id}-title`} data-wipe>
+      {p.title}{p.accent && <> <span class="soft">{p.accent}</span><span class="dot">.</span></>}
+    </h2>
+  </header>
+
+  <div class="player" data-player data-duration={meta?.seconds}>
+    <figure class="screen" data-piece-screen data-surface>
+      <video
+        class="media"
+        controls
+        playsinline
+        preload="none"
+        poster={p.poster}
+        width={width}
+        height={height}
+        aria-label={`${name}, video`}
+        data-pv
+      >
+        <source src={p.video} type="video/mp4" />
+      </video>
+
+      <!-- Cortinilla: un bloque Klein que el scroll barre hacia afuera. Solo con motion (pieces.ts). -->
+      <div class="shutter" aria-hidden="true" data-shutter></div>
+
+      <button type="button" class="ctrl glass" data-pv-play hidden>
+        <span data-pv-label>Play</span>
+        {meta && <span class="dur" data-pv-dur><span class="sep" aria-hidden="true"></span>{meta.duration}</span>}
+      </button>
+    </figure>
+
+    <div class="transport" data-pv-transport hidden>
+      <div class="track">
+        <span class="rail" aria-hidden="true" data-pv-rail><span class="fill" data-pv-fill></span></span>
+        <input
+          class="seek"
+          type="range"
+          min="0"
+          max={meta ? meta.seconds.toFixed(2) : '0'}
+          step="0.1"
+          value="0"
+          aria-label={`Seek ${name}`}
+          data-pv-seek
+        />
+      </div>
+      <div class="readout">
+        <p class="label time">
+          <span data-pv-time>0:00</span>{meta && <><span class="sep" aria-hidden="true"></span><span class="total">{meta.duration}</span></>}
+        </p>
+        <button type="button" class="label fs" data-pv-fs>Full screen</button>
+      </div>
+    </div>
+
+    {p.note && <p class="note">{p.note}</p>}
+  </div>
+
+  <div class="card" data-piece-card>
+    <dl class="facts">
+      {facts.map((f) => (
+        <div class:list={['fact', { wide: f.wide }]} data-piece-block>
+          <dt class="label">{f.label}</dt>
+          <dd>{f.value}</dd>
+        </div>
+      ))}
+    </dl>
+
+    <dl class="texts">
+      {texts.map((t) => (
+        <div class="text" data-piece-block>
+          <dt class="label">{t.label}</dt>
+          <dd>{t.text}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<script>
+  // Reproductores de las piezas. Cada clic de Play es el gesto que permite el sonido.
+  type Player = { video: HTMLVideoElement; root: HTMLElement };
+  const players: Player[] = [];
+  const fmt = (t: number) => {
+    const s = Math.max(0, Math.round(t));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-player]').forEach((root) => {
+    const video = root.querySelector<HTMLVideoElement>('[data-pv]');
+    const play = root.querySelector<HTMLButtonElement>('[data-pv-play]');
+    const label = root.querySelector<HTMLElement>('[data-pv-label]');
+    const dur = root.querySelector<HTMLElement>('[data-pv-dur]');
+    const transport = root.querySelector<HTMLElement>('[data-pv-transport]');
+    const seek = root.querySelector<HTMLInputElement>('[data-pv-seek]');
+    const fill = root.querySelector<HTMLElement>('[data-pv-fill]');
+    const time = root.querySelector<HTMLElement>('[data-pv-time]');
+    const fs = root.querySelector<HTMLButtonElement>('[data-pv-fs]');
+    const piece = root.closest<HTMLElement>('[data-piece]');
+    if (!video || !play || !label || !transport || !seek || !fill || !time) return;
+
+    // Con JS, los controles propios reemplazan a los del navegador
+    video.controls = false;
+    play.hidden = false;
+    transport.hidden = false;
+    players.push({ video, root });
+
+    const name = video.getAttribute('aria-label')?.replace(/, video$/, '') ?? 'video';
+    const total = () => (Number.isFinite(video.duration) && video.duration > 0 ? video.duration : Number(root.dataset.duration) || 0);
+
+    // El cabezal sigue al video cuadro a cuadro mientras suena (solo transform)
+    let raf = 0;
+    const paint = () => {
+      const t = total();
+      const k = t ? Math.min(1, video.currentTime / t) : 0;
+      fill.style.transform = `scaleX(${k})`;
+      seek.value = String(video.currentTime);
+      seek.setAttribute('aria-valuetext', `${fmt(video.currentTime)} of ${fmt(t)}`);
+      time.textContent = fmt(video.currentTime);
+    };
+    const loop = () => {
+      paint();
+      raf = requestAnimationFrame(loop);
+    };
+
+    const sync = () => {
+      const playing = !video.paused;
+      label.textContent = playing ? 'Pause' : 'Play';
+      if (dur) dur.hidden = playing;
+      play.setAttribute('aria-label', playing ? `Pause ${name}` : `Play ${name}, ${fmt(total())}`);
+      root.toggleAttribute('data-playing', playing);
+      cancelAnimationFrame(raf);
+      if (playing) loop();
+      else paint();
+    };
+
+    const toggle = () => {
+      if (video.paused) {
+        piece?.setAttribute('data-played', ''); // la cortinilla no vuelve
+        video.muted = false;
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    };
+
+    play.addEventListener('click', toggle);
+    video.addEventListener('click', toggle);
+    video.addEventListener('play', () => {
+      // Suena una sola a la vez
+      players.forEach((o) => o.video !== video && o.video.pause());
+      sync();
+    });
+    video.addEventListener('pause', sync);
+    video.addEventListener('loadedmetadata', () => {
+      seek.max = String(total());
+      paint();
+    });
+    video.addEventListener('ended', () => {
+      video.load(); // vuelve al póster
+      sync();
+    });
+
+    seek.addEventListener('input', () => {
+      piece?.setAttribute('data-played', '');
+      if (video.preload === 'none') video.preload = 'auto';
+      video.currentTime = Number(seek.value);
+      paint();
+    });
+
+    // Pantalla completa del video solo; ahí sí van los controles del navegador
+    fs?.addEventListener('click', () => {
+      const v = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+      piece?.setAttribute('data-played', '');
+      if (video.requestFullscreen) video.requestFullscreen().catch(() => v.webkitEnterFullscreen?.());
+      else v.webkitEnterFullscreen?.();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      video.controls = document.fullscreenElement === video;
+    });
+
+    // Fuera de la vista o con la pestaña oculta, se pausa y no vuelve a sonar sola
+    new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting && document.fullscreenElement !== video) video.pause();
+    }, { threshold: 0.25 }).observe(video);
+
+    sync();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) players.forEach((p) => p.video.pause());
+  });
+</script>
+
+<style>
+  .piece {
+    position: relative;
+    align-items: start;
+    row-gap: var(--space-4);
+    padding-top: var(--section-pad);
+  }
+
+  .piece-head {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .num {
+    color: var(--text-muted);
+  }
+
+  /* Titular de la pieza: un paso por debajo del H1 del caso, 4x sobre el cuerpo, como las secciones */
+  .piece-title {
+    max-width: 16ch;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-case);
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    color: var(--electric);
+  }
+
+  /* Azul eléctrico como los titulares de sección; la itálica fina queda en offwhite, como en el H1 */
+  .piece-title .soft {
+    color: var(--offwhite);
+  }
+
+  /* Zigzag. Horizontal 8/4; vertical 5/7, con la ficha en la columna 6, la del cuerpo de los casos */
+  .player,
+  .card {
+    grid-row: 2;
+  }
+
+  /* Marco y ficha casi nunca miden lo mismo (un vertical es más alto que su ficha; la ficha de un
+     horizontal, más alta que su marco). El más corto acompaña al otro mientras se baja, pegado debajo
+     del nav: así no queda un hueco negro al lado. Solo con las dos columnas lado a lado. */
+  @media (min-width: 1101px) {
+    .player,
+    .card {
+      position: sticky;
+      top: var(--travel-top);
+      align-self: start;
+    }
+  }
+
+  [data-shape='horizontal'][data-side='left'] .player { grid-column: 1 / span 8; }
+  [data-shape='horizontal'][data-side='left'] .card { grid-column: 9 / span 4; }
+  [data-shape='horizontal'][data-side='right'] .player { grid-column: 5 / span 8; }
+  [data-shape='horizontal'][data-side='right'] .card { grid-column: 1 / span 4; }
+  [data-shape='vertical'][data-side='left'] .player { grid-column: 1 / span 5; }
+  [data-shape='vertical'][data-side='left'] .card { grid-column: 6 / span 7; }
+  [data-shape='vertical'][data-side='right'] .player { grid-column: 8 / span 5; }
+  [data-shape='vertical'][data-side='right'] .card { grid-column: 1 / span 7; }
+
+  /* El marco: proporción real del archivo. El vertical no pasa del 78% del alto de la pantalla,
+     así se ve entero sin hacer scroll dentro de él. */
+  .player {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  [data-side='right'] .player {
+    align-items: flex-end;
+  }
+
+  .screen {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    aspect-ratio: var(--ar);
+    overflow: hidden;
+    background: var(--black);
+    transform-origin: 50% 100%;
+  }
+
+  [data-shape='vertical'] .screen,
+  [data-shape='vertical'] .transport,
+  [data-shape='vertical'] .note {
+    width: min(100%, calc(78svh * var(--ar)));
+  }
+
+  .media {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--black);
+    cursor: pointer;
+  }
+
+  /* La cortinilla: oculta hasta que pieces.ts la activa. Sin JS o con movimiento reducido, el video se ve. */
+  .shutter {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: none;
+    background: var(--klein);
+    pointer-events: none;
+  }
+
+  :global(.has-shutter) .shutter {
+    display: block;
+  }
+
+  .piece[data-played] .shutter {
+    display: none;
+  }
+
+  /* Play / Pause: vidrio arriba a la derecha, sobre el video. Texto blanco en todos sus estados. */
+  .ctrl {
+    position: absolute;
+    z-index: 2;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: var(--space-2);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .ctrl[hidden] {
+    display: none;
+  }
+
+  .ctrl:active {
+    transform: scale(0.97);
+  }
+
+  .ctrl::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--black);
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease-out);
+  }
+
+  .dur {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .dur[hidden] {
+    display: none;
+  }
+
+  .dur .sep {
+    margin-inline: 0.7em;
+  }
+
+  /* Línea de tiempo de edición bajo el marco: barra, cabezal (el cuadrado naranja) y tiempo */
+  .transport {
+    width: 100%;
+    margin-top: var(--space-1);
+  }
+
+  .transport[hidden] {
+    display: none;
+  }
+
+  .track {
+    position: relative;
+    height: 28px;
+  }
+
+  .rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    background: rgb(242 242 240 / 0.2);
+    transform-origin: 0 50%;
+  }
+
+  .fill {
+    position: absolute;
+    inset: 0;
+    background: var(--electric);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  /* El control real es un range nativo encima de la barra: teclado, lector de pantalla y toque */
+  .seek {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .seek::-webkit-slider-runnable-track {
+    height: 100%;
+    background: transparent;
+  }
+
+  .seek::-moz-range-track {
+    height: 100%;
+    background: transparent;
+  }
+
+  .seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: 8px;
+    border: 0;
+    background: var(--orange);
+  }
+
+  .seek::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 0;
+    border-radius: 0;
+    background: var(--orange);
+  }
+
+  .seek:focus-visible {
+    outline-offset: 2px;
+  }
+
+  .readout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .time {
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fs {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    cursor: pointer;
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .note {
+    width: 100%;
+    max-width: 62ch;
+    margin-top: var(--space-1);
+    font-size: var(--label);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  [data-side='right'] .note {
+    text-align: left;
+  }
+
+  /* La ficha: datos cortos en una grilla de créditos, después los tres textos */
+  .card {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: var(--space-3) var(--gutter);
+  }
+
+  .fact.wide {
+    grid-column: 1 / -1;
+  }
+
+  .texts {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  dt.label {
+    margin-bottom: 0.45em;
+    color: var(--text-muted);
+  }
+
+  dd {
+    margin: 0;
+    max-width: var(--measure);
+    color: var(--text);
+  }
+
+  .fact dd {
+    color: var(--white);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ctrl:hover::after {
+      opacity: 0.45;
+    }
+
+    .fs:hover {
+      color: var(--orange);
+    }
+  }
+
+  /* Tableta: la ficha baja debajo del marco y el zigzag sigue en el marco */
+  @media (min-width: 761px) and (max-width: 1100px) {
+    [data-shape='horizontal'] .player {
+      grid-column: 1 / -1 !important;
+      grid-row: 2;
+    }
+
+    [data-shape='horizontal'] .card {
+      grid-column: 1 / span 8 !important;
+      grid-row: 3;
+    }
+
+    [data-shape='horizontal'][data-side='right'] .card {
+      grid-column: 5 / span 8 !important;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .piece {
+      row-gap: var(--space-3);
+    }
+
+    .player,
+    .card {
+      grid-column: 1 / -1 !important;
+      grid-row: auto;
+    }
+
+    [data-side='right'] .player {
+      align-items: stretch;
+    }
+
+    [data-shape='vertical'] .player {
+      align-items: flex-start;
+    }
+
+    [data-shape='vertical'] .screen,
+    [data-shape='vertical'] .transport,
+    [data-shape='vertical'] .note {
+      width: min(100%, calc(70svh * var(--ar)));
+    }
+
+    .ctrl {
+      top: var(--space-1);
+      right: var(--space-1);
+    }
+  }
+</style>

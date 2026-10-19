@@ -1,0 +1,113 @@
+---
+// What I do: bloque Klein a todo el ancho (negro, azul, negro en la página) con textos en blanco.
+// La capa Klein entra como un barrido de edición desde arriba, atado al scroll (motion/disciplines.ts).
+// Detrás, la palabra fantasma MAKE en blanco al 6%.
+const rows = [
+  { name: 'Branding', line: 'brand systems, manuals and templates' },
+  { name: 'Video editing', line: 'educational, institutional and UGC video' },
+  { name: 'UX & web design', line: 'interfaces, prototypes and web design' },
+  { name: 'Motion', line: 'motion graphics and animated type' },
+];
+---
+
+<section class="disciplines wrap" aria-labelledby="disc-title" data-disciplines>
+  <span class="field field-wipe" aria-hidden="true" data-field data-surface></span>
+  <span class="field field-base" aria-hidden="true" data-surface></span>
+  <span class="ghost" aria-hidden="true" data-parallax>Make</span>
+
+  <h2 id="disc-title" class="label">What I do</h2>
+
+  <ul class="rows">
+    {rows.map((r) => (
+      <li class="row grid" data-discipline>
+        <h3 class="name">{r.name}</h3>
+        <p class="line">{r.line}</p>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .disciplines {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    padding-block: var(--section-pad);
+    color: var(--white);
+  }
+
+  /* Campo Klein. La parte de arriba (una pantalla de alto) la pinta el barrido;
+     el resto de la sección ya es Klein, porque entra a la vista cuando el barrido terminó.
+     Sin motion queda completo. */
+  .field {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: -2;
+    background: var(--klein);
+  }
+
+  .field-wipe {
+    top: 0;
+    height: min(100%, 100svh);
+    transform-origin: 50% 0%;
+  }
+
+  .field-base {
+    top: min(100%, 100svh);
+    bottom: 0;
+  }
+
+  .disciplines .label {
+    color: var(--white);
+  }
+
+  /* Sobre Klein, el foco y los textos pequeños activos van en blanco: el azul y el naranja no alcanzan contraste */
+  .disciplines :global(:focus-visible) {
+    outline-color: var(--white);
+  }
+
+  .ghost {
+    top: 22%;
+    right: -4vw;
+  }
+
+  .rows {
+    margin-top: var(--space-6);
+  }
+
+  .row {
+    align-items: baseline;
+    row-gap: var(--space-1);
+    padding-block: var(--space-3);
+  }
+
+  /* Un paso por debajo de los títulos de Selected work: los proyectos gritan más que las disciplinas */
+  .name {
+    grid-column: 1 / span 7;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-s);
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .line {
+    grid-column: 8 / span 5;
+    max-width: 30ch;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: var(--body);
+    line-height: 1.35;
+    color: var(--offwhite);
+  }
+
+  @media (max-width: 760px) {
+    .name,
+    .line {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

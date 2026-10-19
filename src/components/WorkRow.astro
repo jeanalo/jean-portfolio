@@ -1,0 +1,121 @@
+---
+// Fila de proyecto: titular de periódico en una lista. Sin tarjeta, sin fondo, sin borde.
+// Sin `href` es una fila quieta (un caso en borrador en producción).
+// `compact` apila nombre y etiquetas, para listas angostas (Selected work en 7 columnas).
+// El slot permite meter contenido extra dentro de la fila, como la portada en móvil.
+import Seps from './Seps.astro';
+
+interface Props {
+  href?: string;
+  num?: string;
+  title: string;
+  tags: (string | number | undefined)[];
+  compact?: boolean;
+}
+const { href, num, title, tags, compact = false } = Astro.props;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag class:list={['work-row', 'grid', { 'is-static': !href, 'is-compact': compact }]} href={href}>
+  {num && <span class="label num">{num}</span>}
+  <span class="name">{title}</span>
+  <span class="label tags"><Seps items={tags} /></span>
+  {href && <span class="arrow" aria-hidden="true">→</span>}
+  <slot />
+</Tag>
+
+<style>
+  .work-row {
+    position: relative;
+    align-items: baseline;
+    padding-block: var(--space-4);
+  }
+
+  .num {
+    grid-column: 1 / span 1;
+    color: var(--text-muted);
+  }
+
+  .name {
+    grid-column: 2 / span 7;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-m);
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    text-transform: uppercase;
+    color: var(--white);
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .is-static .name {
+    color: var(--text-muted);
+  }
+
+  .tags {
+    grid-column: 9 / span 3;
+    color: var(--text-muted);
+  }
+
+  .arrow {
+    grid-column: 12 / span 1;
+    justify-self: end;
+    font-size: var(--body);
+    transition:
+      transform var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out);
+  }
+
+  /* Compacta: nombre en una línea y etiquetas debajo. Un poco más juntas que las filas sueltas,
+     para que la lista se lea como una sola pieza. */
+  .is-compact {
+    row-gap: var(--space-1);
+    padding-block: var(--space-3);
+  }
+
+  .is-compact .name {
+    grid-column: 2 / -1;
+    white-space: nowrap;
+  }
+
+  .is-compact .tags {
+    grid-column: 2 / span 10;
+  }
+
+  .is-compact .arrow {
+    grid-column: 12 / span 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a.work-row:hover .name {
+      color: var(--electric);
+    }
+
+    a.work-row:hover .arrow {
+      color: var(--orange);
+      transform: translateX(6px);
+    }
+  }
+
+  @media (max-width: 760px) {
+    .num,
+    .name,
+    .tags {
+      grid-column: 1 / -1;
+    }
+
+    .tags {
+      margin-top: var(--space-2);
+    }
+
+    .arrow {
+      display: none;
+    }
+
+    .is-compact .name,
+    .is-compact .tags {
+      grid-column: 1 / -1;
+      white-space: normal;
+    }
+  }
+</style>

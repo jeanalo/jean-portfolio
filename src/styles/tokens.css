@@ -1,0 +1,81 @@
+/*
+  Tokens del sistema de diseño de Jean Alomia.
+  Fuente de verdad: CLAUDE.md. Si cambias un valor aquí, cámbialo también allá.
+*/
+
+:root {
+  /* Color */
+  --black: #0a0a0a;
+  --klein: #002fa7;
+  --electric: #0047ff;
+  --offwhite: #f2f2f0;
+  --white: #ffffff;
+  --orange: #ff4d00; /* acento: hasta 5% de una vista. Puntos finales, separadores, flechas y hover de textos pequeños. Nunca en párrafos */
+  --yellow: #ffe500; /* acento escaso: máximo un elemento por vista. Nunca toca el naranja */
+
+  --bg: var(--black);
+  --text: var(--offwhite);
+  --text-muted: rgb(242 242 240 / 0.72);
+
+  /* Tipografía */
+  --font-display: "Libre Franklin", "Arial Black", system-ui, sans-serif;
+  --font-body: "Urbanist", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --display-hero: clamp(3.25rem, 9vw, 9.5rem);  /* headline del home, dos líneas */
+  --display-xl: clamp(3.5rem, 12vw, 12.25rem);  /* titulares de portada */
+  --display-l: clamp(3.25rem, 8vw, 8rem);       /* números de sección, cierres */
+  --display-close-s: min(22vw, 6rem);           /* SAY HEY en móvil: grande para que el llavero se lea */
+  --display-m: clamp(2rem, 4.6vw, 4.5rem);      /* filas de proyectos */
+  --display-case: clamp(3.25rem, 5.6vw, 5.5rem);/* titulares de sección de un caso: bajo el H1, 4x sobre el cuerpo */
+  --display-s: clamp(1.75rem, 3.8vw, 3.75rem);  /* filas de What I do: un paso por debajo de los proyectos */
+  --display-xs: clamp(1.375rem, 2vw, 1.875rem); /* títulos de los datos de About: más grandes que su contenido */
+  --body: clamp(1.0625rem, 1.25vw, 1.25rem);    /* 17px a 20px */
+  --label: 0.8125rem;                           /* 13px */
+
+  --lh-display: 0.86;
+  --lh-body: 1.5;
+  --track-display: -0.04em;
+  --track-label: 0.16em;
+
+  /* Espaciado (base 8px) */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-6: 3rem;
+  --space-8: 4rem;
+  --space-12: 6rem;
+  --space-16: 8rem;
+  /* Depende del ancho y del alto: el vacío entre secciones no pasa de un cuarto de la pantalla */
+  --section-pad: clamp(2.5rem, min(10vw, 9svh), 10rem);
+
+  /* Grilla */
+  --margin: clamp(1.25rem, 5.5vw, 5rem);
+  --gutter: 1.5rem;
+  --columns: 12;
+  --measure: 62ch;
+
+  /* La columna corta acompaña a la larga (position: sticky) a esta distancia del borde de arriba:
+     debajo del nav, que mide 3.5rem */
+  --travel-top: calc(3.5rem + var(--space-4));
+
+  /* Firma visual */
+  --tilt: -2deg;
+
+  /* Capa de vidrio: solo en lo que flota o se toca, siempre sobre color o movimiento */
+  --glass-tint: rgb(10 10 10 / 0.58); /* garantiza 4,5:1 con texto blanco aunque detrás haya blanco */
+  --glass-solid: rgb(10 10 10 / 0.94); /* prefers-reduced-transparency */
+  --glass-edge: rgb(255 255 255 / 0.32);
+  --glass-shine: rgb(255 255 255 / 0.22);
+  --glass-blur: 14px;
+  --glass-sat: 170%;
+
+  /* Palabras fantasma detrás de algunas secciones */
+  --ghost: rgb(255 255 255 / 0.06);
+  --display-ghost: clamp(8rem, 30vw, 34rem);
+
+  /* Motion (para la Fase 3) */
+  --dur-micro: 200ms;
+  --dur-enter: 600ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
