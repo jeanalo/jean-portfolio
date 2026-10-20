@@ -23,8 +23,11 @@ export function initReveals() {
 
   // Textos: entran una sola vez, línea por línea con máscara (nunca letra por letra)
   gsap.utils.toArray<HTMLElement>('[data-reveal-text], .sec-body').forEach((block) => {
-    // Los dt que son títulos (data-reveal-title) tienen su propia entrada
-    const parts = block.querySelectorAll<HTMLElement>('p, li, dt:not([data-reveal-title])');
+    // Los dt que son títulos (data-reveal-title) tienen su propia entrada. Un párrafo suelto con el
+    // atributo entra él mismo (antes se buscaban solo párrafos adentro y no entraba nada).
+    const parts = block.matches('p, li')
+      ? [block]
+      : [...block.querySelectorAll<HTMLElement>('p, li, dt:not([data-reveal-title])')];
     if (!parts.length) return;
     // aria: 'none' deja el texto tal cual para el lector de pantalla (aria-label no aplica a p, dt ni li)
     const split = SplitText.create(parts, { type: 'lines', mask: 'lines', aria: 'none' });

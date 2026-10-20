@@ -13,8 +13,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const probe = `(() => {
   const sections = [...document.querySelectorAll('main > section, body > footer')];
-  // El campo Klein cuenta como contenido: es color, no hueco
-  const skip = '.ghost, .strap, dialog, .sr-only, .skip';
+  // El campo Klein cuenta como contenido: es color, no hueco.
+  // Los rodillos de las cifras (.reel) miden veinte filas y van recortados por su ventana: cuenta el dígito.
+  const skip = '.ghost, .strap, dialog, .sr-only, .skip, .reel';
   const extent = (sec) => {
     let top = Infinity, bottom = -Infinity;
     // Si la sección recorta su contenido (la cinta del video), solo cuenta lo que se ve

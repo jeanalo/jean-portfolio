@@ -23,6 +23,7 @@ import { initParallax } from './parallax';
 import { initCharm } from './charm';
 import { initFooter } from './footer';
 import { initAbout } from './about';
+import { initOffClock } from './offclock';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, Draggable, InertiaPlugin, DrawSVGPlugin);
 gsap.defaults({ ease: 'expo.out', duration: 0.6 });
@@ -58,6 +59,7 @@ document.fonts.ready.then(() => {
         initReveals(),
         initParallax(),
         initAbout({ finePointer: Boolean(finePointer) }),
+        initOffClock(),
         initCharm({ finePointer: Boolean(finePointer) }),
         initFooter(),
       ];

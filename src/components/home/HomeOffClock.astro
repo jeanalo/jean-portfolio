@@ -1,0 +1,844 @@
+---
+// Off the clock: el lado personal de Jean, después de About y antes del contacto. Se lee en cuatro tiempos,
+// con un ritmo de intervalos distintos (no el mismo aire entre todo): la apertura y las cifras van juntas
+// (son la pregunta y su resumen), después más aire antes de la historia y antes del cierre.
+// 1. La apertura: la foto de los 7 años (4:5) en las columnas 1 a 4 y, en la 6 a 11, el rótulo, el
+//    titular, la intro y el opener, apoyado al pie de la foto.
+// 2. Las cifras, en una sola franja a todo el ancho: el número grande en azul eléctrico y su etiqueta
+//    blanca al lado, separadas por el cuadrado naranja. Cada dígito es un rodillo de contador
+//    (motion/figures.ts). Antes eran cuatro renglones gigantes y pesaban como un muro.
+// 3. La historia: su titular ("Then the stage. Now the screen.") y los tres párrafos en las columnas 1 a 6;
+//    en la 8 a 12, el Then / Now: el marco, la barra que marca el próximo cambio y los botones THEN y NOW.
+//    Las dos fotos van encuadradas por la cabeza y el paso de una a otra es un barrido CSS. Alterna solo
+//    cada 3 s mientras se ve (motion/offclock.ts); un toque en un botón o en la foto lo detiene.
+// 4. El álbum, una tira de contactos a todo el ancho: el clip (16:9) y las dos fotos (1:1, del mismo tamaño)
+//    en una sola fila del mismo alto, cada una con su pie de foto. La sección termina ahí. Los intentos en
+//    columnas de 4 (con desfase, con el clip inclinado) se leían en diagonal (Jean, 2026-10-20).
+//    El clip quedó lejos del Then / Now: antes los dos se movían al lado de los párrafos mientras se leía.
+// Tres tamaños en la sección: la etiqueta (rótulo, botones, pies de foto), el cuerpo y --display-case
+// (los titulares y los números de las cifras).
+// Todas las fotos van en blanco y negro con .bw; el clip ya viene así. Móvil: una columna, en orden.
+import { showPending } from '../../lib/projects';
+import { danceClip } from '../../lib/video';
+
+const stats = [
+  { num: '14', what: 'Years dancing' },
+  { num: '20+', what: 'Countries' },
+  { num: '10', what: 'Months on a cruise' },
+  { num: '2', what: 'Dachshunds' },
+];
+
+const chapters = [
+  'I danced salsa professionally for 14 years. I competed, I won, and I toured. For ten months I danced on a cruise ship, far from home.',
+  'Dance took me around the world before design did. I have been to more than 20 countries. I still travel, now for the culture and the people. Thailand is my favorite.',
+  'I trained as a topographer and worked a year at Emcali. But fourteen years on stage had already shaped how I think: in rhythm, in story, in how a moment lands with an audience. That is what pulled me into visual communication and brand storytelling. Same discipline, new stage.',
+];
+
+// El clip sale cuando existe el .mp4. Sin él, en desarrollo queda el hueco armado; en producción no sale.
+const clip = danceClip.src ? 'video' : showPending ? 'pending' : undefined;
+---
+
+<section id="off-the-clock" class="offclock wrap grid" aria-labelledby="offclock-title">
+  <div class="opening">
+    <div class="lead">
+      <p class="label eyebrow">Beyond the work</p>
+      <!-- JEAN lleva la firma de la casa, como STUFF en el hero: la caja azul a -2° (cae al entrar) -->
+      <h2 id="offclock-title" class="display title" data-box-title>
+        But, who is <span class="box">Jean</span> <span class="soft">off the clock<span class="dot">?</span></span>
+      </h2>
+      <p class="intro" data-reveal-text>Before the pixels, there was a stage. Fourteen years of it.</p>
+      <p class="opener" data-reveal-text>
+        I was seven, waiting at the edge of the stage for my first official performance as a salsa dancer. That
+        stage turned into fourteen years as a professional and a many-time champion.
+      </p>
+    </div>
+
+    <figure class="seven" data-surface data-reveal-media>
+      <img
+        class="bw"
+        src="/images/offclock-seven.webp"
+        alt="Jean at seven, at the edge of a stage before his first performance, looking back over his shoulder."
+        width="960"
+        height="1200"
+        loading="lazy"
+        decoding="async"
+      />
+    </figure>
+  </div>
+
+  <!-- Cada dígito es un rodillo: el número real va como texto para el lector de pantalla y el rodillo,
+       que dibuja sus filas con CSS (::before), queda oculto (aria-hidden). Así nunca se lee "1 0 1 2 3". -->
+  <ul class="stats" data-figures>
+    {stats.map((s, i) => (
+      <li class="stat" data-figure>
+        <span class="sr-only">{s.num}</span>
+        <span class="num" aria-hidden="true">
+          {[...s.num].map((ch) =>
+            /\d/.test(ch) ? (
+              <span class="digit">
+                {ch}
+                <span class="window"><span class="reel" style={`--d: ${ch}`} data-reel></span></span>
+              </span>
+            ) : (
+              ch
+            ),
+          )}
+        </span>
+        <span class="what">{s.what}</span>
+        {i < stats.length - 1 && <span class="sq" aria-hidden="true"></span>}
+      </li>
+    ))}
+  </ul>
+
+  <div class="story">
+    <span class="ghost" aria-hidden="true" data-parallax>Stage</span>
+    <!-- La historia lleva su titular: "Then the stage. Now the screen." encabeza los párrafos y nombra el
+         bloque del Then / Now que va al lado (aria-labelledby). -->
+    <div class="story-text">
+      <h3 id="era-title" class="era-title" data-reveal-title>
+        <span class="line">Then the stage<span class="dot">.</span></span>
+        <span class="line">Now the screen<span class="dot">.</span></span>
+      </h3>
+      <div class="chapters" data-reveal-text>
+        {chapters.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
+
+    <div class="era" data-era role="group" aria-labelledby="era-title">
+      <div class="era-stage">
+        <div class="era-frame" data-era-frame data-surface data-reveal-media>
+          <img
+            class="bw era-then"
+            src="/images/offclock-then.webp"
+            alt="Then: Jean dancing salsa on stage in a sequined suit."
+            width="1080"
+            height="1350"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="era-mask">
+            <img
+              class="bw era-now"
+              src="/images/offclock-now.webp"
+              alt="Now: Jean today, in a black blazer."
+              width="1080"
+              height="1350"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <span class="era-edge" aria-hidden="true"></span>
+        </div>
+
+        <!-- La barra se llena hasta el próximo cambio. Solo se ve mientras el cambio es automático. -->
+        <div class="era-progress" aria-hidden="true"><span class="era-fill" data-era-fill></span></div>
+
+        <!-- Radios nativos con forma de botón: funcionan sin JS y con las flechas del teclado -->
+        <fieldset class="era-switch" data-era-controls>
+          <legend class="sr-only">Show the photo from</legend>
+          <label class="era-opt">
+            <input type="radio" name="era" value="then" checked data-era-then />
+            <span>Then</span>
+          </label>
+          <label class="era-opt">
+            <input type="radio" name="era" value="now" data-era-now />
+            <span>Now</span>
+          </label>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <!-- El álbum: el clip, Tailandia y los perros, y el cierre al pie de la primera columna -->
+  <div class="snaps" data-strip>
+    {clip && (
+      <figure class="clip" data-clip>
+        <div class="clip-frame" data-surface>
+          {clip === 'video' ? (
+            <>
+              <video
+                class="clip-video"
+                src={danceClip.src}
+                poster={danceClip.poster}
+                muted
+                loop
+                playsinline
+                preload="none"
+                aria-label="Jean dancing salsa"
+                data-clip-video
+              />
+              <button type="button" class="clip-ctrl glass" data-clip-toggle hidden>Pause</button>
+            </>
+          ) : (
+            <div class="clip-slot">
+              <span class="label"><span aria-hidden="true">■</span> Pending video</span>
+            </div>
+          )}
+        </div>
+        <figcaption class="caption">A short clip of me dancing, muted and looping.</figcaption>
+      </figure>
+    )}
+    <figure class="snap thailand" data-surface>
+      <img
+        class="bw"
+        src="/images/offclock-thailand.webp"
+        alt="Jean standing in front of the Grand Palace in Bangkok."
+        width="1400"
+        height="1400"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption class="caption">The Grand Palace, Bangkok. Thailand is my favorite country so far.</figcaption>
+    </figure>
+    <figure class="snap dogs" data-surface>
+      <img
+        class="bw"
+        src="/images/offclock-dogs.webp"
+        alt="Jean's two dachshunds, curled up together."
+        width="1100"
+        height="1100"
+        loading="lazy"
+        decoding="async"
+      />
+      <figcaption class="caption">My two dachshunds.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  // El marco del Then / Now también cambia la foto con un clic o un toque. Cuenta como tomar el control:
+  // dispara change en el radio, y motion/offclock.ts apaga el cambio automático.
+  const eraFrame = document.querySelector<HTMLElement>('[data-era-frame]');
+  const eraThen = document.querySelector<HTMLInputElement>('[data-era-then]');
+  const eraNow = document.querySelector<HTMLInputElement>('[data-era-now]');
+  if (eraFrame && eraThen && eraNow) {
+    eraFrame.addEventListener('click', () => {
+      const next = eraNow.checked ? eraThen : eraNow;
+      next.checked = true;
+      next.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
+  // El clip de baile: mudo y en loop, como un GIF, pero se puede pausar (WCAG 2.2.2: lo que se mueve más
+  // de 5 s se tiene que poder detener). Arranca cuando entra a la vista y se pausa cuando sale o cuando la
+  // pestaña se oculta. Con movimiento reducido no arranca solo: queda en su póster y el botón dice Play.
+  // Ya viene en blanco y negro de la edición: no lleva .bw (el grano del sitio pasa por encima, como siempre).
+  const video = document.querySelector<HTMLVideoElement>('[data-clip-video]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-clip-toggle]');
+
+  if (video && toggle) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    // Con movimiento reducido o con ahorro de datos, arranca quieto en su póster
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    let userPaused = reduce.matches || Boolean(saveData);
+    let inView = false;
+
+    // El botón dice qué hace y sobre qué: el lector de pantalla oye "Pause the dance clip"
+    const label = () => {
+      toggle.textContent = video.paused ? 'Play' : 'Pause';
+      toggle.setAttribute('aria-label', (video.paused ? 'Play' : 'Pause') + ' the dance clip');
+    };
+    const sync = () => {
+      if (inView && !userPaused && !document.hidden) video.play().catch(() => {});
+      else video.pause();
+    };
+
+    toggle.hidden = false;
+    video.addEventListener('play', label);
+    video.addEventListener('pause', label);
+    label();
+
+    toggle.addEventListener('click', () => {
+      userPaused = !video.paused;
+      if (userPaused) video.pause();
+      else video.play().catch(() => {});
+    });
+
+    new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        sync();
+      },
+      { threshold: 0.4 },
+    ).observe(video);
+    document.addEventListener('visibilitychange', sync);
+  }
+</script>
+
+<style>
+  /* Ritmo: la apertura y las cifras van juntas (64 px); la historia y el cierre llevan más aire (96 px).
+     Cada grupo es su propia subgrilla: un sticky dentro de la grilla de la sección viajaría por toda ella. */
+  .offclock {
+    row-gap: 0;
+    padding-block: var(--section-pad);
+    container-type: inline-size;
+    overflow-x: clip; /* la palabra fantasma es más ancha que la pantalla; clip no rompe los sticky */
+  }
+
+  /* STAGE detrás de la historia, en blanco al 6% y con parallax, como MAKE detrás de What I do: la capa de
+     fondo del sistema. Decorativa, nunca compite con el titular. */
+  .story {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .ghost {
+    top: 8%;
+    left: -2vw;
+  }
+
+  .opening,
+  .story {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: start;
+  }
+
+  .stats {
+    margin-top: var(--space-8);
+  }
+
+  .story,
+  .snaps {
+    margin-top: var(--space-12);
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Pies de foto: el mismo estilo que los de los casos (CaseMedia) */
+  .caption {
+    margin-top: var(--space-2);
+    max-width: 40ch;
+    font-size: var(--label);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  /* ---------- 1. Apertura ---------- */
+
+  /* El texto en las columnas 6 a 11, alineado arriba con la foto; el opener se apoya al pie de la foto,
+     así columna y foto forman un solo bloque. Si el texto es más alto que la foto, el opener lo sigue. */
+  .lead {
+    grid-column: 6 / span 6;
+    grid-row: 1;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eyebrow {
+    color: var(--text-muted);
+  }
+
+  .title {
+    margin-top: var(--space-2);
+    font-size: var(--display-case);
+    text-wrap: balance;
+  }
+
+  .title .box {
+    margin-block: 0.06em;
+  }
+
+  /* "off the clock" se lee junto: no se parte entre líneas */
+  .title .soft {
+    white-space: nowrap;
+  }
+
+  .intro {
+    margin-top: var(--space-4);
+    max-width: var(--measure);
+    color: var(--white);
+  }
+
+  .opener {
+    margin-top: auto;
+    padding-top: var(--space-6);
+    max-width: var(--measure);
+    color: var(--text);
+    text-wrap: pretty;
+  }
+
+  /* El niño está a la derecha de su foto y mira hacia adentro de ella */
+  .seven {
+    grid-column: 1 / span 4;
+    grid-row: 1;
+  }
+
+  /* ---------- 2. Cifras ---------- */
+
+  /* Una franja: cada cifra es un número grande (azul eléctrico, 3,15:1 sobre negro, texto grande) con su
+     etiqueta blanca al lado, y el cuadrado naranja detrás. Cada cifra pasa entera a la línea siguiente
+     cuando no cabe, con su cuadrado pegado: nunca empieza una línea con un separador. */
+  .stats {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-4);
+    row-gap: var(--space-3);
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .num {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-case);
+    line-height: var(--lh-display);
+    letter-spacing: var(--track-display);
+    font-variant-numeric: tabular-nums;
+    color: var(--electric);
+    white-space: nowrap;
+    user-select: none; /* el número que se lee y se copia es el del texto oculto, no el del rodillo */
+  }
+
+  .what {
+    max-width: 9em;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    line-height: 1.3;
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--white);
+  }
+
+  .sq {
+    flex: none;
+    width: 6px;
+    height: 6px;
+    margin-left: var(--space-2);
+    background: var(--orange);
+  }
+
+  /* Cuando la franja no entra en una línea (hasta 1100 px), las cifras van en una grilla de 2 × 2: el
+     cuadrado sobraría al final de cada línea, así que se va; la grilla ya las separa. */
+  @media (max-width: 1100px) {
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sq {
+      display: none;
+    }
+  }
+
+  /* Rodillos de contador: el dígito en el flujo da el ancho y la línea de base pero no se ve; se ve su
+     rodillo, recortado por la ventana de su propio dígito. Las veinte filas (dos vueltas de 0 a 9) las
+     dibuja el CSS: no son texto, así que ni el lector de pantalla ni un copiar y pegar las ven.
+     El CSS deja el rodillo en su cifra; sin JS o con movimiento reducido, se lee el número quieto. */
+  .digit {
+    position: relative;
+    display: inline-block;
+    color: transparent;
+  }
+
+  .window {
+    position: absolute;
+    inset: 0 0 -0.04em;
+    overflow: clip;
+  }
+
+  .reel {
+    position: absolute;
+    top: calc((var(--lh-display) * 1em - 1.2em) / 2);
+    left: 0;
+    width: 100%;
+    line-height: 1.2em;
+    text-align: center;
+    white-space: pre;
+    color: var(--electric);
+    transform: translateY(calc((10 + var(--d)) * -5%));
+  }
+
+  .reel::before {
+    content: "0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9";
+  }
+
+  /* ---------- 3. La historia ---------- */
+
+  /* Dos columnas que se acompañan: el titular y los párrafos en la 1 a 6, el Then / Now en la 8 a 12,
+     alineados arriba. Las dos son sticky: la más corta viaja junto a la larga y la larga no tiene recorrido. */
+  .story-text {
+    grid-column: 1 / span 6;
+    position: sticky;
+    top: var(--travel-top);
+  }
+
+  .chapters p {
+    max-width: var(--measure);
+    color: var(--text);
+    text-wrap: pretty;
+  }
+
+  .chapters p + p {
+    margin-top: 1em;
+  }
+
+  .era {
+    grid-column: 8 / -1;
+    position: sticky;
+    top: var(--travel-top);
+  }
+
+  /* El marco, la barra y los botones van juntos y caben en una pantalla: en una baja (1280 × 529) el
+     marco se achica para que la foto y su control se vean a la vez. */
+  .era-stage {
+    width: min(100%, calc((100svh - 10rem) * 0.8));
+  }
+
+  /* El titular de la historia: la itálica fina al tamaño del titular, la voz baja de la sección, una frase
+     por renglón. En escritorio entra entero en sus 6 columnas; en un teléfono angosto se ajusta al ancho
+     (14.6cqi de la sección) para no partir "Now the screen.". */
+  .era-title {
+    margin-bottom: var(--space-6);
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-style: italic;
+    font-size: min(var(--display-case), 14.6cqi);
+    line-height: var(--lh-display);
+    letter-spacing: -0.02em;
+    color: var(--white);
+  }
+
+  .era-title .line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* El corte: Now entra por una máscara que barre de izquierda a derecha (adelante en el tiempo) y vuelve
+     de derecha a izquierda (rebobinar). La máscara y la foto de adentro se mueven en sentidos contrarios,
+     así la foto queda quieta y solo avanza el borde. Un filete naranja marca el borde mientras cruza y queda
+     fuera del marco en reposo. Solo transform. */
+  .era-frame {
+    --edge: 3px;
+    position: relative;
+    overflow: clip;
+    aspect-ratio: 4 / 5;
+    cursor: pointer;
+  }
+
+  .era-frame img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .era-mask,
+  .era-edge {
+    position: absolute;
+    inset: 0;
+    transform: translateX(calc(-100% - var(--edge)));
+  }
+
+  .era-mask {
+    overflow: clip;
+  }
+
+  .era-mask img {
+    transform: translateX(calc(100% + var(--edge)));
+  }
+
+  .era-edge {
+    pointer-events: none;
+  }
+
+  .era-edge::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: var(--edge);
+    background: var(--orange);
+  }
+
+  .era:has([data-era-now]:checked) :is(.era-mask, .era-edge, .era-mask img) {
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .era-mask,
+    .era-edge,
+    .era-mask img {
+      transition: transform 650ms cubic-bezier(0.77, 0, 0.175, 1);
+    }
+  }
+
+  /* Con movimiento reducido no hay barrido: Now aparece en su lugar con un fundido corto */
+  @media (prefers-reduced-motion: reduce) {
+    .era-mask,
+    .era-mask img,
+    .era:has([data-era-now]:checked) .era-mask {
+      transform: none;
+    }
+
+    .era-mask {
+      opacity: 0;
+      transition: opacity 200ms ease;
+    }
+
+    .era:has([data-era-now]:checked) .era-mask {
+      opacity: 1;
+    }
+
+    .era-edge {
+      display: none;
+    }
+  }
+
+  /* La barra del próximo cambio: fina, a todo el ancho del marco, como la línea de tiempo de las piezas de
+     video. Ocupa su lugar siempre (no empuja nada al aparecer) y solo se ve con el cambio automático. */
+  .era-progress {
+    position: relative;
+    height: 3px;
+    margin-top: var(--space-2);
+    overflow: clip;
+    background: rgb(242 242 240 / 0.16);
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease-out);
+  }
+
+  .era.is-auto .era-progress {
+    opacity: 1;
+  }
+
+  .era-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--electric);
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  /* Los botones: dos bloques duros. El activo, azul eléctrico con el texto blanco (6,3:1); el otro, un
+     bloque apagado que pasa a naranja con el hover. */
+  .era-switch {
+    display: flex;
+    gap: 2px;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .era-opt {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 7rem;
+    min-height: 44px;
+    padding-inline: var(--space-3);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    color: var(--offwhite);
+    background: rgb(242 242 240 / 0.12);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-micro) var(--ease-out),
+      color var(--dur-micro) var(--ease-out),
+      transform 160ms var(--ease-out);
+  }
+
+  .era-opt input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .era-opt:has(input:checked) {
+    color: var(--white);
+    background: var(--electric);
+  }
+
+  .era-opt:has(input:focus-visible) {
+    outline: 2px solid var(--electric);
+    outline-offset: 4px;
+  }
+
+  .era-opt:active {
+    transform: scale(0.97);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .era-opt:not(:has(input:checked)):hover {
+      color: var(--orange);
+    }
+  }
+
+  /* El clip: 16:9, derecho. En la tira las tres piezas comparten los bordes de arriba y de abajo; la
+     inclinación de -2° rompía esa línea y hacía leer la fila en diagonal (Jean, 2026-10-20). */
+  .clip-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: clip;
+    background: var(--black);
+  }
+
+  .clip-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .clip-slot {
+    height: 100%;
+    padding: var(--space-3);
+    background: var(--klein);
+  }
+
+  .clip-slot .label {
+    color: var(--offwhite);
+  }
+
+  .clip-ctrl {
+    position: absolute;
+    z-index: 2;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding-inline: var(--space-2);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    letter-spacing: var(--track-label);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 160ms var(--ease-out);
+  }
+
+  .clip-ctrl[hidden] {
+    display: none;
+  }
+
+  .clip-ctrl:active {
+    transform: scale(0.97);
+  }
+
+  /* ---------- 4. Tailandia, los perros y el cierre ---------- */
+
+  /* El álbum es una tira de contactos, como una línea de tiempo de edición: el clip y las dos fotos en una
+     sola fila, del mismo alto, a todo el ancho de la grilla. Cada pieza crece en proporción a su formato
+     (el clip 16/9, las fotos 1), así los bordes de arriba y de abajo caen en la misma línea y los pies de
+     foto arrancan a la misma altura. Las dos fotos miden exactamente lo mismo. La sección termina ahí:
+     el cierre en texto que iba debajo quedaba flotando solo y se quitó (Jean, 2026-10-20). */
+  .snaps {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.7778fr) minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--gutter);
+    row-gap: var(--space-6);
+  }
+
+  /* ---------- Escritorio chico ---------- */
+
+  @media (max-width: 1100px) {
+    .seven {
+      grid-column: 1 / span 5;
+    }
+
+    .lead {
+      grid-column: 7 / -1;
+    }
+  }
+
+  /* ---------- Móvil: una columna, en el orden del HTML ---------- */
+
+  @media (max-width: 760px) {
+    .stats {
+      margin-top: var(--space-6);
+    }
+
+    .story,
+    .snaps {
+      margin-top: var(--space-8);
+    }
+
+    .opening,
+    .story {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: none;
+      row-gap: var(--space-6);
+    }
+
+    .lead,
+    .seven,
+    .story-text,
+    .era {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    /* La tira se parte: el clip a todo el ancho y las dos fotos de a par, iguales */
+    .snaps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .clip {
+      grid-column: 1 / -1;
+    }
+
+    .era,
+    .story-text {
+      position: static;
+    }
+
+    .era-stage {
+      width: 100%;
+    }
+
+    /* Cifras de a dos, el número sobre su etiqueta */
+    .stat {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-1);
+    }
+
+    /* La foto va entre la intro y el opener: el opener es su pie. El aire lo dan los márgenes de cada
+       pieza, no el row-gap, para que el rótulo quede pegado al titular. */
+    .opening {
+      row-gap: 0;
+    }
+
+    .lead {
+      display: contents;
+    }
+
+    .eyebrow { order: 1; }
+    .title { order: 2; }
+    .intro { order: 3; }
+
+    .seven {
+      order: 4;
+      margin-top: var(--space-6);
+    }
+
+    .opener {
+      order: 5;
+      margin-top: var(--space-3);
+      padding-top: 0;
+    }
+
+  }
+</style>

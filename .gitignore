@@ -36,3 +36,6 @@ pnpm-debug.log*
 # respaldos y archivos sueltos de trabajo
 .backup/
 *.tmp.mjs
+
+# fotos originales de Off the clock (con metadatos del teléfono; al sitio solo van las de public/images)
+/Fotos off the clock/
