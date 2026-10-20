@@ -4,8 +4,8 @@
 //    Languages, Education) en las 7 columnas de la izquierda; el póster de Jean (AboutPoster) en las 5
 //    de la derecha. La hoja corta llena el espacio que quedaba bajo la bio: las dos columnas terminan
 //    casi a la misma altura sin achicar la foto.
-// 2. El kit, a todo el ancho: Tools, Code y AI tools, cada una en su columna con la lista en vertical
-//    (en línea con ■ se veía mal, pedido de Jean del 2026-10-19).
+// 2. El kit, a todo el ancho y en pestañas: TOOLS, CODE y AI TOOLS, una lista a la vista por vez, en
+//    columnas (en vertical medía unos 700 px y se leía como un footer; Jean, 2026-10-20).
 // Móvil: titular, póster, bio, hoja corta y el kit en una columna.
 import AboutPoster from './AboutPoster.astro';
 
@@ -24,6 +24,10 @@ const who = [
 
 // El kit: cada lista en vertical, una herramienta por línea. Podado por Jean el 2026-10-19.
 // AI tools va agrupada por categoría, en dos columnas (una sola se hacía demasiado larga).
+// Cuántas herramientas tiene cada pestaña
+const count = (k: { list?: string[]; groups?: { items: string[] }[] }) =>
+  k.list?.length ?? k.groups?.reduce((n, g) => n + g.items.length, 0) ?? 0;
+
 const kits = [
   { key: 'tools', label: 'Tools', list: ['Premiere Pro', 'After Effects', 'DaVinci Resolve', 'CapCut', 'Figma', 'Illustrator', 'Photoshop', 'Lightroom', 'InDesign', 'Audition', 'Blender', 'Canva', 'Framer'] },
   { key: 'code', label: 'Code', list: ['React', 'Astro', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Tailwind CSS', 'Node.js', 'Firebase', 'Git', 'Arduino (C++)'] },
@@ -69,32 +73,45 @@ const kits = [
     ))}
   </dl>
 
-  <dl class="kits" data-reveal-text>
-    {kits.map((f) => (
-      <div class:list={['fact', `fact-${f.key}`]}>
-        <dt class="fact-title">{f.label}</dt>
-        <dd class="fact-value">
-          {f.list && (
-            <ul class="stack">
-              {f.list.map((t) => <li>{t}</li>)}
+  <!-- El kit en pestañas: TOOLS, CODE y AI TOOLS, con cuántas herramientas tiene cada una. Una lista a la
+       vista por vez, en columnas; la pestaña activa va en la caja azul de la casa. Radios nativos: funciona
+       sin JS y con las flechas, como el Then / Now de Off the clock. -->
+  <div class="kits" data-reveal-text>
+    <fieldset class="kit-tabs">
+      <legend class="sr-only">The kit</legend>
+      {kits.map((k, i) => (
+        <label class="kit-tab">
+          <input type="radio" name="kit" value={k.key} checked={i === 0} />
+          <span class="kit-name">{k.label}</span>
+          <span class="kit-count">{count(k)}</span>
+        </label>
+      ))}
+    </fieldset>
+
+    <div class="kit-panels">
+      {kits.map((k) => (
+        <div class:list={['kit-panel', `kit-${k.key}`]}>
+          {k.list && (
+            <ul class="kit-list">
+              {k.list.map((t) => <li>{t}</li>)}
             </ul>
           )}
-          {f.groups && (
-            <div class="groups">
-              {f.groups.map((g) => (
+          {k.groups && (
+            <div class="kit-groups">
+              {k.groups.map((g) => (
                 <div class="group">
                   <span class="label group-title">{g.title}</span>
-                  <ul class="stack">
+                  <ul>
                     {g.items.map((t) => <li>{t}</li>)}
                   </ul>
                 </div>
               ))}
             </div>
           )}
-        </dd>
-      </div>
-    ))}
-  </dl>
+        </div>
+      ))}
+    </div>
+  </div>
 </section>
 
 <style>
@@ -148,24 +165,129 @@ const kits = [
     grid-column: 1 / -1;
   }
 
-  /* El kit: tres columnas con la lista en vertical. AI tools es la más larga y va al doble de ancho,
-     con la lista en dos columnas. */
+  /* El kit en pestañas: una franja a todo el ancho que mide lo que el panel activo. Antes eran tres
+     listas en vertical de hasta 13 renglones: unos 700 px que se leían como el mapa de un footer. (Si los
+     paneles reservaran el alto del más largo, sobraría aire al pie de About y el hueco hasta Off the
+     clock pasaría el límite.) */
   .kits {
     grid-area: kits;
-    display: grid;
-    grid-template-columns: subgrid;
-    row-gap: var(--space-6);
-    margin: var(--space-12) 0 0;
+    margin-top: var(--space-12);
   }
 
-  .fact-tools { grid-column: 1 / 5; }
-  .fact-code { grid-column: 5 / 8; }
-  .fact-ai { grid-column: 8 / 13; }
+  .kit-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 
-  /* AI tools por categoría, en dos columnas: asistentes y video arriba, imagen y audio debajo */
-  .groups {
+  .kit-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.4em;
+    min-height: 44px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color var(--dur-micro) var(--ease-out);
+  }
+
+  .kit-tab input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .kit-name {
+    padding: 0.04em 0.14em 0.02em;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-xs);
+    line-height: var(--lh-display);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    transform-origin: left center;
+    transition: transform var(--dur-micro) var(--ease-out);
+  }
+
+  .kit-count {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: var(--label);
+    letter-spacing: var(--track-label);
+  }
+
+  /* La pestaña activa: la caja azul de la casa, a -2°, con el texto blanco */
+  .kit-tab:has(input:checked) {
+    color: var(--white);
+  }
+
+  .kit-tab:has(input:checked) .kit-name {
+    background: var(--electric);
+    transform: rotate(var(--tilt));
+  }
+
+  .kit-tab:has(input:focus-visible) {
+    outline: 2px solid var(--electric);
+    outline-offset: 6px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .kit-tab:not(:has(input:checked)):hover {
+      color: var(--electric);
+    }
+  }
+
+  .kit-panels {
+    margin-top: var(--space-4);
+  }
+
+  .kit-panel {
+    display: none;
+  }
+
+  .kits:has(input[value="tools"]:checked) .kit-tools,
+  .kits:has(input[value="code"]:checked) .kit-code,
+  .kits:has(input[value="ai"]:checked) .kit-ai {
+    display: block;
+  }
+
+  /* El panel que aparece entra con un fundido corto y sube 8 px (solo opacity y transform) */
+  @media (prefers-reduced-motion: no-preference) {
+    .kits:has(input[value="tools"]:checked) .kit-tools,
+    .kits:has(input[value="code"]:checked) .kit-code,
+    .kits:has(input[value="ai"]:checked) .kit-ai {
+      animation: kit-in 220ms var(--ease-out);
+    }
+  }
+
+  @keyframes kit-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  /* Cada lista en 4 columnas, que se leen de arriba abajo */
+  .kit-list {
+    columns: 4;
+    column-gap: var(--gutter);
+  }
+
+  .kit-list li,
+  .kit-groups li {
+    padding-block: 0.12em;
+    break-inside: avoid;
+  }
+
+  /* AI tools por categoría: una columna por categoría */
+  .kit-groups {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-4) var(--gutter);
   }
 
@@ -194,11 +316,6 @@ const kits = [
   .fact-value p {
     max-width: 44ch;
     text-wrap: pretty;
-  }
-
-  /* La lista en vertical: una herramienta por línea, sin viñetas; el orden ya es la jerarquía */
-  .stack li {
-    padding-block: 0.18em;
   }
 
   /* Listas en línea (Languages): cada ítem con su cuadrado delante y el primero recortado */
@@ -246,31 +363,8 @@ const kits = [
       grid-column: auto;
     }
 
-    .kits {
-      row-gap: var(--space-6);
-    }
-
-    .fact-tools,
-    .fact-code,
-    .fact-ai {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: subgrid;
-    }
-
-    .kits .fact-title {
-      grid-column: 1 / 5;
-      margin-bottom: 0;
-    }
-
-    .kits .fact-value {
-      grid-column: 5 / -1;
-    }
-
-    .fact-tools .stack,
-    .fact-code .stack {
-      columns: 2;
-      column-gap: var(--gutter);
+    .kit-list {
+      columns: 3;
     }
   }
 
@@ -302,22 +396,20 @@ const kits = [
     }
 
     .kits {
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: var(--space-4);
       margin-top: var(--space-8);
     }
 
-    .fact-tools,
-    .fact-code,
-    .fact-ai {
-      grid-column: 1;
+    .kit-tabs {
+      column-gap: var(--space-4);
     }
 
-    /* En el teléfono las listas van en dos columnas para no hacer la página eterna */
-    .fact-tools .stack,
-    .fact-code .stack {
+    /* En el teléfono, de a dos columnas */
+    .kit-list {
       columns: 2;
-      column-gap: var(--gutter);
+    }
+
+    .kit-groups {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>

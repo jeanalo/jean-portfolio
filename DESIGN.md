@@ -257,6 +257,9 @@ Jean's personal side, short, on the home between About and the contact. It reads
 
 **The Counter Rule.** Counter reels always land on the real number. A watchdog on a timer finishes the roll if the figures have crossed their trigger line and the roll has not finished in time, so a window that reports visible but does not paint (a preview pane, a capture) never leaves them on 0; the roll also completes when the tab hides or returns, when the figures leave the top, and when the page loads below them. The real number is the accessible text; the visual digits and their reels are hidden from assistive tech, and the reels' twenty rows are drawn by CSS, so they are never read or copied.
 
+### The Kit
+About's tools close the section as a tabbed strip, not three tall lists: TOOLS, CODE and AI TOOLS at Display XS, each with its count in Label type. The active tab sits in the Signal Blue signature box at -2°; the others are muted and turn blue on hover. One list shows at a time in four columns read top to bottom (AI tools by category), and the strip takes the height of the active panel, so About ends right after it. Native radios, so it works without JS and with the arrow keys; panels switch with a short fade and an 8px rise.
+
 ### What I Do Rows
 A full-bleed Klein field with white text: the page reads black, blue, black. Four discipline names at Subtitle size, one step below the Selected work titles so the projects shout louder than the disciplines, each with its description beside it in Urbanist 400, Paper, at body size. The field enters as an edit wipe: a viewport-tall Klein layer scales down from the top with the scroll (transform only), finishes before the rows reach the middle of the screen and rewinds on scroll up; the rest of the section is already Klein. Rows enter tilted -2° to -3° and straighten with the scroll. MAKE sits behind as a white ghost word at 6%.
 
